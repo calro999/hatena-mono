@@ -74,9 +74,11 @@ class ImageGenerator:
                 "https://images.unsplash.com/photo-1520981764781-4ebcb47e9b15?w=800&auto=format&fit=crop&q=80",
                 "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=800&auto=format&fit=crop&q=80"
             ],
-            "pc": [
+            "pc_desk": [
                 "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80"
+                "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1511385348-a52b4a160dc2?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800&auto=format&fit=crop&q=80"
             ],
             "kitchen": [
                 "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop&q=80",
@@ -89,10 +91,6 @@ class ImageGenerator:
             "game": [
                 "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80",
                 "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80"
-            ],
-            "gadget": [
-                "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80"
             ]
         }
 
@@ -116,12 +114,12 @@ class ImageGenerator:
         if any(w in title_lower for w in ["ゲーム", "コントローラー", "ps5", "switch", "game"]):
             return random.choice(pools["game"])
 
-        # Category-based default pools
-        if category in pools:
+        # Fallback to category pools (if kitchen/beauty/game are specified, use them)
+        if category in pools and category not in ["gadget", "pc"]:
             return random.choice(pools[category])
 
-        # Universal fallback
-        return random.choice(pools["gadget"])
+        # Universal fallback (Gadget site desk background)
+        return random.choice(pools["pc_desk"])
 
     def _load_font(self, size: int):
         jp_font_paths = [
