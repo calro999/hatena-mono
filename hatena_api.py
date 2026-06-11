@@ -13,23 +13,25 @@ class HatenaAPI:
         
         # Clean blog_id (remove http://, https://, and trailing slashes/paths)
         cleaned_blog_id = blog_id.replace("https://", "").replace("http://", "").split("/")[0].strip()
-        self.blog_id = cleaned_blog_id
         
+        # Validation warning for common misconfigurations
+        if cleaned_blog_id.lower() in ["blog.hatena.ne.jp", "f.hatena.ne.jp", "hatena.ne.jp"]:
+            print(f"⚠️ WARNING: HATENA_BLOG_ID seems to be set to '{cleaned_blog_id}'. "
+                  f"This should be your blog's domain name (e.g., 'your-blog.hatenablog.com' or 'your-id.hatenadiary.jp') "
+                  f"instead of the Hatena system domain.")
+                  
+        self.blog_id = cleaned_blog_id
         self.api_key = api_key.strip()
 
     def _get_wsse_headers(self) -> Dict[str, str]:
         """Generates WSSE authentication headers for Hatena API."""
         created = datetime.datetime.utcnow().isoformat() + "Z"
-        
-        # Generate 20-byte random nonce
         nonce_bytes = os.urandom(20)
         
-        # Calculate digest: SHA1(Nonce + Created + API_KEY)
         sha = hashlib.sha1()
         sha.update(nonce_bytes + created.encode("utf-8") + self.api_key.encode("utf-8"))
         digest = sha.digest()
         
-        # Base64 encode nonce and digest
         nonce_b64 = base64.b64encode(nonce_bytes).decode("utf-8")
         digest_b64 = base64.b64encode(digest).decode("utf-8")
         
@@ -81,16 +83,18 @@ class HatenaAPI:
                 res_xml = response.read()
                 root = ET.fromstring(res_xml)
                 
-                namespaces = {'atom': 'http://www.w3.org/2005/Atom'}
+                # Correct XML Namespace handling in ElementTree
+                # Since root tag is {http://www.w3.org/2005/Atom}entry, tags inside also use this namespace.
+                ns_atom = "{http://www.w3.org/2005/Atom}"
                 
-                content_el = root.find('atom:content', namespaces)
+                content_el = root.find(f'{ns_atom}content')
                 if content_el is not None:
                     img_url = content_el.get('src')
                     if img_url:
                         print(f"Image uploaded successfully. URL: {img_url}")
                         return img_url
                         
-                for link in root.findall('atom:link', namespaces):
+                for link in root.findall(f'{ns_atom}link'):
                     if 'image' in (link.get('type') or ''):
                         img_url = link.get('href')
                         print(f"Image uploaded successfully. URL: {img_url}")
@@ -116,7 +120,6 @@ class HatenaAPI:
         draft_val = "yes" if is_draft else "no"
         url = f"https://blog.hatena.ne.jp/{self.hatena_id}/{self.blog_id}/atom/entry"
         
-        # Escape XML entities in HTML content to prevent XML parsing error on post
         escaped_html = html_content.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
         xml_payload = f"""<?xml version="1.0" encoding="utf-8"?>
