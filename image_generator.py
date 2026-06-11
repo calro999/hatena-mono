@@ -43,22 +43,44 @@ class ImageGenerator:
     def _select_unsplash_image_url(self, title: str, category: Optional[str]) -> str:
         title_lower = title.lower()
         
-        # Unsplash premium photo pools for each category
+        # Unsplash premium photo pools segmented by granular keywords
         pools = {
             "headphones": [
                 "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
                 "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80",
                 "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
             ],
+            "keyboards": [
+                "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1595225476474-87563907a212?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1601445638532-3c6f6c3aa1d6?w=800&auto=format&fit=crop&q=80"
+            ],
+            "mice": [
+                "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1625842268584-8f3290447001?w=800&auto=format&fit=crop&q=80"
+            ],
+            "chargers": [
+                "https://images.unsplash.com/photo-1619119131015-bf15894101ad?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1609592806457-3f30d075841d?w=800&auto=format&fit=crop&q=80"
+            ],
+            "smartwatches": [
+                "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=800&auto=format&fit=crop&q=80"
+            ],
+            "vacuums": [
+                "https://images.unsplash.com/photo-1563161402-841f41458229?w=800&auto=format&fit=crop&q=80"
+            ],
+            "toasters": [
+                "https://images.unsplash.com/photo-1520981764781-4ebcb47e9b15?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=800&auto=format&fit=crop&q=80"
+            ],
             "pc": [
                 "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800&auto=format&fit=crop&q=80",
                 "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80"
             ],
             "kitchen": [
                 "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1520981764781-4ebcb47e9b15?w=800&auto=format&fit=crop&q=80"
+                "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&auto=format&fit=crop&q=80"
             ],
             "beauty": [
                 "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80",
@@ -70,28 +92,35 @@ class ImageGenerator:
             ],
             "gadget": [
                 "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&auto=format&fit=crop&q=80"
+                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80"
             ]
         }
 
-        # Match keywords in title first
-        if any(w in title_lower for w in ["ヘッドホン", "イヤホン", "headphone", "earphone", "audio"]):
+        # Granular Keyword Matching (High priority)
+        if any(w in title_lower for w in ["キーボード", "keyboard", "hhkb", "realforce"]):
+            return random.choice(pools["keyboards"])
+        if any(w in title_lower for w in ["マウス", "mouse", "trackball", "mx master"]):
+            return random.choice(pools["mice"])
+        if any(w in title_lower for w in ["充電", "充電器", "バッテリー", "charger", "power bank", "anker nano"]):
+            return random.choice(pools["chargers"])
+        if any(w in title_lower for w in ["ウォッチ", "スマートウォッチ", "watch", "apple watch"]):
+            return random.choice(pools["smartwatches"])
+        if any(w in title_lower for w in ["掃除機", "ルンバ", "ロボット掃除機", "vacuum"]):
+            return random.choice(pools["vacuums"])
+        if any(w in title_lower for w in ["トースター", "toaster"]):
+            return random.choice(pools["toasters"])
+        if any(w in title_lower for w in ["ヘッドホン", "イヤホン", "headphone", "earphone", "audio", "shokz"]):
             return random.choice(pools["headphones"])
-        if any(w in title_lower for w in ["マウス", "キーボード", "mouse", "keyboard", "pc", "デスク"]):
-            return random.choice(pools["pc"])
-        if any(w in title_lower for w in ["トースター", "ホットクック", "炊飯器", "掃除機", "ルンバ", "kitchen", "cooker"]):
-            return random.choice(pools["kitchen"])
         if any(w in title_lower for w in ["ドライヤー", "ヘアアイロン", "ナノケア", "beauty", "hair"]):
             return random.choice(pools["beauty"])
         if any(w in title_lower for w in ["ゲーム", "コントローラー", "ps5", "switch", "game"]):
             return random.choice(pools["game"])
 
-        # Fallback to category pools
+        # Category-based default pools
         if category in pools:
             return random.choice(pools[category])
 
-        # Universal fallback (Gadgets display)
+        # Universal fallback
         return random.choice(pools["gadget"])
 
     def _load_font(self, size: int):

@@ -2,10 +2,8 @@ name: Amazon Hatena Blog Auto Poster
 
 on:
   schedule:
-    # 毎日 朝9時(JST) = 0:00 UTC
-    - cron: '0 0 * * *'
-    # 毎日 夜7時(JST) = 10:00 UTC
-    - cron: '0 10 * * *'
+    # 3時間おきに実行 (1日8回)
+    - cron: '0 */3 * * *'
   workflow_dispatch:
     inputs:
       search_keywords:
