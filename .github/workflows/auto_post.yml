@@ -16,6 +16,9 @@ on:
 jobs:
   auto-post:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      models: read
 
     steps:
     - name: Checkout repository
