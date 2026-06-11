@@ -1,0 +1,13 @@
+# Core requirements
+requests==2.31.0
+urllib3==2.0.7
+
+# Machine Learning & NLP (CPU friendly & no compilation required)
+torch--extra-index-url https://download.pytorch.org/whl/cpu
+transformers==4.38.2
+diffusers==0.26.3
+accelerate==0.27.2
+huggingface_hub==0.20.3
+pillow==10.2.0
+
+# SMTP & MIME (Standard libraries used, no extra packages needed)

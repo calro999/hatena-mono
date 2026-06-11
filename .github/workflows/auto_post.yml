@@ -1,0 +1,62 @@
+name: Amazon Hatena Blog Auto Poster
+
+on:
+  schedule:
+    # 毎日午前9時(日本時間 18:00 UTC)に自動投稿を実行
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    # 手動実行用
+    inputs:
+      search_keywords:
+        description: '検索キーワード (例: スマートウォッチ, ノイキャンヘッドホン)'
+        required: false
+        default: '最新ガジェット'
+
+jobs:
+  auto-post:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Hugging Faceのモデルキャッシュディレクトリを保存・復元
+    - name: Cache Hugging Face models
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-hf-models-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-hf-models-
+
+    - name: Run Auto Poster
+      env:
+        # Amazon Product Advertising API Credentials
+        AMAZON_ACCESS_KEY: ${{ secrets.AMAZON_ACCESS_KEY }}
+        AMAZON_SECRET_KEY: ${{ secrets.AMAZON_SECRET_KEY }}
+        AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
+        AMAZON_HOST: "webservices.amazon.co.jp"
+        AMAZON_REGION: "us-west-2"
+
+        # SMTP Settings for Hatena Blog
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USER: ${{ secrets.SMTP_USER }}
+        SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        HATENA_BLOG_EMAIL: ${{ secrets.HATENA_BLOG_EMAIL }}
+
+        # Options
+        SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || '最新人気ガジェット' }}
+      run: |
+        python amazon_hatena_poster.py
