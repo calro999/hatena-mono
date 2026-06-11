@@ -3,6 +3,7 @@ import re
 import requests
 import json
 import time
+import urllib.parse
 from typing import Dict, Any, Optional, List
 
 class ArticleGenerator:
@@ -59,7 +60,6 @@ class ArticleGenerator:
             ("OpenRouter Free API", self._generate_with_openrouter),
             ("Hugging Face API (Free Tier)", self._generate_with_huggingface),
             ("Pollinations AI Free (No Key Required)", self._generate_with_pollinations),
-            ("DuckDuckGo Chat Free (No Key Required)", self._generate_with_duckduckgo),
         ]
 
         raw_article = None
@@ -78,11 +78,9 @@ class ArticleGenerator:
 
         # If all LLM APIs failed
         if not raw_article:
-            # Check if we are running in GitHub Actions (production)
             if os.environ.get("GITHUB_ACTIONS") == "true":
                 raise RuntimeError("All free LLM APIs failed to generate a valid review article in GitHub Actions. Cannot proceed to prevent posting spam templates.")
             else:
-                # Local dry-run fallback to allow testing without failing the script execution
                 print("WARNING: All free LLM APIs failed or are rate-limited. Since this is a local dry-run, generating dummy review text to verify downstream components.")
                 raw_article = f"""## 1. はじめに：なぜ今この商品が注目されているのか？
 これはローカル開発環境でのドライラン検証用のテスト記事です。現在、すべてのオンライン無料LLM APIがレート制限またはキー未設定のため利用できませんでした。
@@ -146,6 +144,8 @@ class ArticleGenerator:
                 return data["candidates"][0]["content"]["parts"][0]["text"]
             except KeyError:
                 return None
+        else:
+            print(f"Gemini API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_github_models(self, prompt: str) -> Optional[str]:
@@ -153,7 +153,6 @@ class ArticleGenerator:
         if not token:
             return None
         
-        # GitHub Models API endpoint
         url = "https://models.inference.ai.azure.com/chat/completions"
         headers = {
             "Authorization": f"Bearer {token}",
@@ -173,6 +172,8 @@ class ArticleGenerator:
                 return resp.json()["choices"][0]["message"]["content"]
             except (KeyError, IndexError):
                 return None
+        else:
+            print(f"GitHub Models API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_openrouter(self, prompt: str) -> Optional[str]:
@@ -200,6 +201,8 @@ class ArticleGenerator:
                 return data["choices"][0]["message"]["content"]
             except KeyError:
                 return None
+        else:
+            print(f"OpenRouter API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_huggingface(self, prompt: str) -> Optional[str]:
@@ -230,31 +233,36 @@ class ArticleGenerator:
                 return text
             except (KeyError, IndexError):
                 return None
+        else:
+            print(f"Hugging Face API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_pollinations(self, prompt: str) -> Optional[str]:
-        """完全無料・認証不要の Pollinations AI テキストAPIを利用。429回避のリトライ付き。"""
+        """Pollinations AIのテキスト生成。異なるモデルでPOSTリトライして429を回避します。"""
         url = "https://text.pollinations.ai/"
-        payload = {
-            "messages": [
-                {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
-                {"role": "user", "content": prompt}
-            ],
-            "model": "openai"
-        }
         
-        # 429 queue full recovery retry
-        for attempt in range(3):
-            resp = requests.post(url, json=payload, timeout=25)
-            if resp.status_code == 200:
-                return resp.text
-            elif resp.status_code == 429:
-                print(f"Pollinations AI text returned 429 (Queue full). Waiting {attempt + 2}s before retry...")
-                time.sleep(attempt + 2)
-            else:
-                break
-        return None
-
-    def _generate_with_duckduckgo(self, prompt: str) -> Optional[str]:
-        # Legacy placeholder, keep signature for fallback compatibility
+        # Try different free models on Pollinations to spread load and avoid 429
+        models = ["openai", "qwen", "mistral"]
+        
+        for attempt, model in enumerate(models):
+            payload = {
+                "messages": [
+                    {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
+                    {"role": "user", "content": prompt}
+                ],
+                "model": model
+            }
+            try:
+                print(f"Trying Pollinations AI POST (model: {model}, attempt: {attempt+1})...")
+                resp = requests.post(url, json=payload, timeout=25)
+                if resp.status_code == 200 and len(resp.text.strip()) > 300:
+                    return resp.text
+                elif resp.status_code == 429:
+                    print(f"Pollinations AI {model} returned 429. Waiting {attempt+2}s before trying next model...")
+                    time.sleep(attempt+2)
+                else:
+                    print(f"Pollinations AI {model} returned status {resp.status_code}")
+            except Exception as e:
+                print(f"Pollinations POST attempt for {model} failed: {e}")
+            
         return None
