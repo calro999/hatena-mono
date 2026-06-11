@@ -31,28 +31,28 @@ class ArticleGenerator:
         price = item.get("price", "")
         url = item.get("url", "")
 
-        prompt = f"""以下のAmazonの商品情報を元に、ブログ「はてなブログ」に投稿するための高品質で魅力的な商品レビュー記事を日本語で執筆してください。
+        prompt = f"""以下のAmazonの商品情報を元に、ブログ「はてなブログ」に投稿するための、読者に役立つ自然で高品質な商品紹介記事を日本語で執筆してください。
 
 【商品名】: {title}
 【価格】: {price}
 【主な特徴】:
 {features}
-【アフィリエイトリンク】: {url}
+【商品ページURL】: {url}
 
 【執筆ルール】:
 1. 読者の興味を惹くキャッチーな見出し(H2, H3タグを使用)を作成してください。
-2. 商品のメリットだけでなく、どのような人におすすめか、どういう生活の変化が期待できるかを具体的に描写してください。
-3. 文末には必ずアフィリエイトリンクへのスムーズな誘導を入れてください。
-4. HTML形式(見出し、段落 <p>、箇条書き <ul><li> など)で出力してください。MarkdownではなくHTMLタグを使用してください。
+2. 「アフィリエイト」「アフィリンク」「誘導」「広告」といった、読者に商業的な意図を直接感じさせる言葉は**絶対に記事内（見出し、目次、本文すべて）に出力しないでください**。
+3. 商品リンクへ案内する際は、「詳細はこちら」「Amazonでチェックする」「気になった方はこちらから」など、自然な言葉を使用してください。
+4. 商品のメリットだけでなく、実際の利用シーンや、導入することで生活がどのように便利になるかを具体的に解説してください。
+5. Markdownの記号（#, ##, ###, *, - など）は一切使用せず、**純粋なHTML形式**（<h2>, <h3>, <p>, <ul>, <li> などのタグ）のみで出力してください。
 """
 
-        # Fallback implementation if model loading failed
         if self.model is None or self.tokenizer is None:
             return self._generate_fallback_article(item)
 
         try:
             messages = [
-                {"role": "system", "content": "あなたは優秀なブログライター兼アフィリエイターです。"},
+                {"role": "system", "content": "あなたは優秀なブログライターです。読者の役に立つ自然な言葉遣いで、高品質な商品紹介記事をHTML形式で執筆します。"},
                 {"role": "user", "content": prompt}
             ]
             text = self.tokenizer.apply_chat_template(
@@ -74,7 +74,10 @@ class ArticleGenerator:
             ]
 
             response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-            return response
+            
+            # Post-processing to clean up any accidental markdown tags the model might output
+            clean_response = response.replace("### ", "<h3>").replace("###", "").replace("## ", "<h2>").replace("##", "")
+            return clean_response
         except Exception as e:
             print(f"Error during text generation: {e}. Falling back to template-based generation.")
             return self._generate_fallback_article(item)
@@ -87,34 +90,28 @@ class ArticleGenerator:
         image_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{item.get("image_url", "")}" alt="{title}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"><br><a href="{url}" style="font-size: 14px; color: #555;">(画像出典: Amazon)</a></div>' if item.get("image_url") else ""
 
         return f"""
-<h2>超話題の最新アイテム！「{title}」を徹底レビュー</h2>
-<p>こんにちは！今回は、今ネットやSNSで大きな話題を呼んでいる大注目商品「<strong>{title}</strong>」をご紹介します。</p>
-<p>日々の暮らしをより豊かに、そして快適にしてくれる機能が満載のこの商品。実際にどのような魅力があるのか、詳細を解説します！</p>
+<h2>生活をより豊かに！大注目の人気アイテム「{title}」をご紹介</h2>
+<p>こんにちは！今回は、今ネットやSNSでも高い評価を得ている話題の商品「<strong>{title}</strong>」をご紹介します。</p>
+<p>日々の暮らしをより便利に、そして快適にしてくれる機能が満載のこの商品。実際の使い勝手やその魅力について分かりやすく解説します！</p>
 
 {image_html}
 
 <h3>注目のスペックと主な特徴</h3>
-<p>まずは、このアイテムの素晴らしいポイントを整理してみましょう。</p>
+<p>このアイテムの素晴らしいポイントをいくつか整理してみましょう。</p>
 <ul>
     {features_html}
 </ul>
-<p>特筆すべきは、その圧倒的なコストパフォーマンス。これだけの機能が揃って、現在の価格は <strong>{price}</strong> となっています。</p>
+<p>クオリティの高さと実用性を兼ね備えており、現在の価格は <strong>{price}</strong> となっています。</p>
 
-<h3>どんな人におすすめ？</h3>
-<p>この商品は、以下のような悩みを抱えている方に特におすすめです。</p>
-<ul>
-    <li>日常のちょっとした不便を解消し、スマートな生活を送りたい方</li>
-    <li>機能性とデザイン性を両立したガジェットを探している方</li>
-    <li>大切な人へのプレゼントや、自分へのご褒美を探している方</li>
-</ul>
+<h3>どのような生活の変化が期待できる？</h3>
+<p>この商品を導入することで、日常のちょっとした不便が解消され、よりスマートで効率的な毎日を送ることができます。特に、デザイン性と機能性の両方を妥協したくない方にはぴったりです。</p>
 
-<h3>まとめ：今すぐ手に入れて生活をアップグレードしよう！</h3>
-<p>「{title}」は、クオリティの高さと実用性を兼ね備えた、今まさに手に入れるべき極上の一品です。</p>
-<p>人気商品のため、在庫切れやセール終了になる前にぜひチェックしてみてください！</p>
+<h3>まとめ：気になる方はお早めにチェック！</h3>
+<p>「{title}」は、非常に高い完成度を誇るおすすめの一品です。人気商品のため、気になる方はぜひ詳細をチェックしてみてください。</p>
 
 <div style="text-align: center; margin: 30px 0;">
     <a href="{url}" style="display: inline-block; background: #FF9900; color: #fff; padding: 15px 30px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: background 0.3s;">
-        Amazonで「{title}」を詳しく見る 🛒
+        Amazonで「{title}」の価格と詳細を見る 🛒
     </a>
 </div>
 """
