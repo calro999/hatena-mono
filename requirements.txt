@@ -3,7 +3,8 @@ requests==2.31.0
 urllib3==2.0.7
 
 # Machine Learning & NLP (CPU friendly & no compilation required)
-torch--extra-index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
 transformers==4.38.2
 diffusers==0.26.3
 accelerate==0.27.2
