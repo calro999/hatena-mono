@@ -1,10 +1,10 @@
 import os
+import re
 from typing import Dict, Any
 
 class ArticleGenerator:
     def __init__(self, model_id: str = "Qwen/Qwen2.5-1.5B-Instruct", use_hf_cache: bool = True):
         self.model_id = model_id
-        # Use Hugging Face default cache or workspace specific directory
         self.cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
         self.tokenizer = None
         self.model = None
@@ -31,7 +31,7 @@ class ArticleGenerator:
         price = item.get("price", "")
         url = item.get("url", "")
 
-        prompt = f"""以下のAmazonの商品情報を元に、ブログ「はてなブログ」に投稿するための、読者に役立つ自然で高品質な商品紹介記事を日本語で執筆してください。
+        prompt = f"""以下のAmazonの商品情報を元に、ブログ「はてなブログ」に投稿するための、高品質で自然な商品紹介記事を執筆してください。
 
 【商品名】: {title}
 【価格】: {price}
@@ -39,12 +39,11 @@ class ArticleGenerator:
 {features}
 【商品ページURL】: {url}
 
-【執筆ルール】:
-1. 読者の興味を惹くキャッチーな見出し(H2, H3タグを使用)を作成してください。
-2. 「アフィリエイト」「アフィリンク」「誘導」「広告」といった、読者に商業的な意図を直接感じさせる言葉は**絶対に記事内（見出し、目次、本文すべて）に出力しないでください**。
-3. 商品リンクへ案内する際は、「詳細はこちら」「Amazonでチェックする」「気になった方はこちらから」など、自然な言葉を使用してください。
-4. 商品のメリットだけでなく、実際の利用シーンや、導入することで生活がどのように便利になるかを具体的に解説してください。
-5. Markdownの記号（#, ##, ###, *, - など）は一切使用せず、**純粋なHTML形式**（<h2>, <h3>, <p>, <ul>, <li> などのタグ）のみで出力してください。
+【執筆の厳格なルール（最優先）】:
+1. ブログ記事の**本文のみ**を出力してください。挨拶文（「承知しました」「以下が記事です」など）や、記事の解説、まとめのアドバイス（「以上のように、自然な言葉遣い〜」「購入につなげることができます」など）は**絶対に1文字も出力しないでください**。記事の最後は「ぜひチェックしてみてください！」などの読者へのメッセージで終了させてください。
+2. 「アフィリエイト」「アフィリンク」「誘導」「広告」といった、読者に商業的な意図を直接感じさせる言葉は**見出し・本文含め、絶対に記事内に出力しないでください**。
+3. 記事はMarkdown（マークダウン）形式で執筆してください。見出しは「## 」「### 」を使用し、箇条書きは「- 」を使用してください。
+4. 商品リンクは、文末付近に自然な形で `[詳細はこちら]({url})` や `[Amazonで「{title}」をチェックする]({url})` のようにMarkdownのリンク記法で埋め込んでください。
 """
 
         if self.model is None or self.tokenizer is None:
@@ -52,7 +51,10 @@ class ArticleGenerator:
 
         try:
             messages = [
-                {"role": "system", "content": "あなたは優秀なブログライターです。読者の役に立つ自然な言葉遣いで、高品質な商品紹介記事をHTML形式で執筆します。"},
+                {
+                    "role": "system", 
+                    "content": "あなたは優秀なブログライターです。指示されたルールを厳格に守り、挨拶文や解説、余計なメタ発言を一切含まない、ブログの本文のみを出力します。"
+                },
                 {"role": "user", "content": prompt}
             ]
             text = self.tokenizer.apply_chat_template(
@@ -65,7 +67,7 @@ class ArticleGenerator:
             generated_ids = self.model.generate(
                 model_inputs.input_ids,
                 max_new_tokens=1024,
-                temperature=0.7,
+                temperature=0.6,
                 top_p=0.9,
                 do_sample=True
             )
@@ -75,9 +77,31 @@ class ArticleGenerator:
 
             response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
             
-            # Post-processing to clean up any accidental markdown tags the model might output
-            clean_response = response.replace("### ", "<h3>").replace("###", "").replace("## ", "<h2>").replace("##", "")
-            return clean_response
+            # --- Robust Post-Processing to remove meta-explanations ---
+            # Remove common starting chat prefixes
+            response = re.sub(r"^(はい、|承知いたしました。|以下が商品紹介記事です。|以下に記事を出力します。|以下が執筆した記事です。)\s*", "", response)
+            
+            # Truncate at common AI metadata/explanation footers
+            meta_markers = [
+                "以上のように",
+                "このように、",
+                "自然な言葉遣いと",
+                "アフィリエイトリンクへの",
+                "読者は商品の魅力を理解し",
+                "購入につなげることができます"
+            ]
+            for marker in meta_markers:
+                if marker in response:
+                    print(f"Truncating AI meta-explanation found at marker: '{marker}'")
+                    response = response.split(marker)[0].rstrip()
+
+            # Convert Markdown to HTML using the python-markdown library
+            import markdown
+            # Enable linebreaks extension to preserve formatting
+            html_output = markdown.markdown(response, extensions=['nl2br'])
+            
+            return html_output
+
         except Exception as e:
             print(f"Error during text generation: {e}. Falling back to template-based generation.")
             return self._generate_fallback_article(item)

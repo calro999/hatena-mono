@@ -10,5 +10,6 @@ diffusers==0.26.3
 accelerate==0.27.2
 huggingface_hub==0.20.3
 pillow==10.2.0
+markdown==3.5.2
 
 # SMTP & MIME (Standard libraries used, no extra packages needed)
