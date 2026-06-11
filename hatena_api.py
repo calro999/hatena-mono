@@ -2,7 +2,10 @@ import base64
 import os
 import urllib.request
 import xml.etree.ElementTree as ET
-from typing import Optional
+import datetime
+import hashlib
+import random
+from typing import Optional, Dict
 
 class HatenaAPI:
     def __init__(self, hatena_id: str, blog_id: str, api_key: str):
@@ -13,11 +16,34 @@ class HatenaAPI:
         self.blog_id = cleaned_blog_id
         
         self.api_key = api_key.strip()
+
+    def _get_wsse_headers(self) -> Dict[str, str]:
+        """Generates WSSE authentication headers for Hatena API."""
+        created = datetime.datetime.utcnow().isoformat() + "Z"
         
-        # Build Basic Auth Header
-        auth_str = f"{self.hatena_id}:{self.api_key}"
-        auth_encoded = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
-        self.auth_header = f"Basic {auth_encoded}"
+        # Generate 20-byte random nonce
+        nonce_bytes = os.urandom(20)
+        
+        # Calculate digest: SHA1(Nonce + Created + API_KEY)
+        sha = hashlib.sha1()
+        sha.update(nonce_bytes + created.encode("utf-8") + self.api_key.encode("utf-8"))
+        digest = sha.digest()
+        
+        # Base64 encode nonce and digest
+        nonce_b64 = base64.b64encode(nonce_bytes).decode("utf-8")
+        digest_b64 = base64.b64encode(digest).decode("utf-8")
+        
+        wsse_header = (
+            f'UsernameToken Username="{self.hatena_id}", '
+            f'PasswordDigest="{digest_b64}", '
+            f'Nonce="{nonce_b64}", '
+            f'Created="{created}"'
+        )
+        
+        return {
+            "X-WSSE": wsse_header,
+            "Authorization": "WSSE profile=\"UsernameToken\""
+        }
 
     def upload_image_to_fotolife(self, image_path: str) -> Optional[str]:
         """Uploads an image to Hatena Fotolife and returns its URL."""
@@ -40,10 +66,8 @@ class HatenaAPI:
   <content mode="base64" type="image/png">{img_base64}</content>
 </entry>
 """
-            headers = {
-                "Authorization": self.auth_header,
-                "Content-Type": "application/xml"
-            }
+            headers = self._get_wsse_headers()
+            headers["Content-Type"] = "application/xml"
 
             req = urllib.request.Request(
                 url, 
@@ -55,14 +79,10 @@ class HatenaAPI:
             print("Uploading image to Hatena Fotolife...")
             with urllib.request.urlopen(req) as response:
                 res_xml = response.read()
-                # Parse XML to find the image URL
                 root = ET.fromstring(res_xml)
                 
-                # Namespace handling
                 namespaces = {'atom': 'http://www.w3.org/2005/Atom'}
                 
-                # Look for link rel="alternate" which contains the actual image page or direct URL
-                # Alternatively look for the hatena syntax generator or content src
                 content_el = root.find('atom:content', namespaces)
                 if content_el is not None:
                     img_url = content_el.get('src')
@@ -70,7 +90,6 @@ class HatenaAPI:
                         print(f"Image uploaded successfully. URL: {img_url}")
                         return img_url
                         
-                # Fallback: find any link with image type
                 for link in root.findall('atom:link', namespaces):
                     if 'image' in (link.get('type') or ''):
                         img_url = link.get('href')
@@ -113,10 +132,8 @@ class HatenaAPI:
   </app:control>
 </entry>
 """
-        headers = {
-            "Authorization": self.auth_header,
-            "Content-Type": "application/xml"
-        }
+        headers = self._get_wsse_headers()
+        headers["Content-Type"] = "application/xml"
 
         req = urllib.request.Request(
             url, 
