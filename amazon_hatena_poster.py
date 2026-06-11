@@ -127,16 +127,30 @@ def main():
     clean_title = target_item.get("clean_title") or target_item["title"]
     title = f"【徹底レビュー】本当に買い？「{clean_title}」の実力を徹底検証！"
 
-    # Upload eyecatch to Fotolife first
+    # Determine image to insert
     uploaded_image_url = hatena_client.upload_image_to_fotolife(eyecatch_path)
-    if uploaded_image_url:
-        print("Inserting uploaded image to the beginning of the article.")
-        img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{uploaded_image_url}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>'
-        article_content = img_html + article_content
-    elif target_item.get("image_url"):
-        print("Fotolife upload failed or skipped. Inserting Amazon official product image instead.")
-        img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{target_item["image_url"]}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>'
-        article_content = img_html + article_content
+    if not uploaded_image_url:
+        print("Fotolife upload failed. Falling back to dynamic online generated AI image.")
+        ai_prompt = img_gen._select_ai_image_prompt(clean_title, target_item.get('category'))
+        import urllib.parse
+        uploaded_image_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(ai_prompt)}?width=800&height=450&nologo=true&private=true"
+
+    # Insert image to the beginning of the article
+    img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{uploaded_image_url}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);"></div>'
+    article_content = img_html + article_content
+
+    # Ensure Amazon Affiliate Link exists in the article. If not, append a beautiful CTA button at the end.
+    if target_item.get("url") and "amazon.co.jp" not in article_content:
+        print("Affiliate link missing in LLM response. Appending premium CTA button to the end of the article.")
+        cta_html = f"""
+        <div style="text-align: center; margin: 40px 0 20px 0;">
+            <a href="{target_item['url']}" style="display: inline-block; background: #FF9900; color: #fff; padding: 16px 32px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,153,0,0.3); text-align: center;">
+                Amazonで「{clean_title}」の詳細・クチコミを見る 🛒
+            </a>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">※現在の価格や在庫状況、実際のユーザー評価は上記リンク先から確認できます。</p>
+        </div>
+        """
+        article_content += cta_html
 
     # Post Entry
     success = hatena_client.post_entry(
