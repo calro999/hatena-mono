@@ -53,10 +53,13 @@ def main():
     # 3. Generate Eyecatch Image
     print("Initializing Image Generator...")
     img_gen = ImageGenerator()
-    img_gen.load_model()
     
     eyecatch_path = "eyecatch.png"
-    img_gen.generate_eyecatch(prompt=target_item['title'], output_path=eyecatch_path)
+    img_gen.generate_eyecatch(
+        prompt=target_item['title'], 
+        output_path=eyecatch_path,
+        image_url=target_item.get('image_url')
+    )
 
     # 4. Generate Review Article
     print("Initializing LLM Article Generator...")
@@ -65,7 +68,8 @@ def main():
     
     article_content = article_gen.generate_review_article(target_item)
     
-    title = f"【話題の新商品】本当に買い？「{target_item['title']}」徹底レビュー・お得情報まとめ"
+    clean_title = target_item.get("clean_title") or target_item["title"]
+    title = f"【徹底レビュー】本当に買い？「{clean_title}」の実力を徹底検証！"
 
     # 5. Post to Hatena Blog via API
     print("Initializing Hatena API Client...")

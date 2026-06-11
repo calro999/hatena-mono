@@ -6,8 +6,6 @@ urllib3==2.0.7
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch
 transformers==4.38.2
-diffusers==0.26.3
-accelerate==0.27.2
 huggingface_hub==0.20.3
 pillow==10.2.0
 markdown==3.5.2
