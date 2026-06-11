@@ -1,98 +1,109 @@
 import os
 import requests
 import io
-import re
-import urllib.parse
+import random
 from PIL import Image, ImageDraw, ImageFont
 from typing import Tuple, Optional
 
 class ImageGenerator:
     def __init__(self, model_id: str = ""):
-        print("ImageGenerator: Initialized using online Pollinations AI generation + Pillow composition.")
+        print("ImageGenerator: Initialized using Unsplash premium photo pool + Pillow composition.")
 
     def load_model(self):
-        # NOP. Kept for compatibility.
         pass
 
     def generate_eyecatch(self, prompt: str, output_path: str = "eyecatch.png", image_url: Optional[str] = None, category: Optional[str] = None) -> str:
         from amazon_api import clean_product_title
         clean_title = clean_product_title(prompt)
         
-        # 1. Determine the best AI Image Prompt based on category and title keywords
-        ai_prompt = self._select_ai_image_prompt(clean_title, category)
-        print(f"Selected AI image generation prompt: '{ai_prompt}'")
+        # 1. Select the best premium photo from Unsplash based on category/keywords
+        unsplash_url = self._select_unsplash_image_url(clean_title, category)
+        print(f"Selected base image URL: {unsplash_url}")
         
-        # 2. Try to download the AI generated image from Pollinations.ai as base background
+        # 2. Download the high-quality image as base background
         bg_img = None
         try:
-            print("Requesting AI image generation from Pollinations.ai...")
-            encoded_prompt = urllib.parse.quote(ai_prompt)
-            # Use Flux model via pollinations (width=800, height=450)
-            url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=800&height=450&nologo=true&private=true&seed={os.urandom(4).hex()}"
-            resp = requests.get(url, timeout=25)
+            print("Downloading premium background photo...")
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+            resp = requests.get(unsplash_url, headers=headers, timeout=20)
             if resp.status_code == 200 and len(resp.content) > 5000:
                 bg_img = Image.open(io.BytesIO(resp.content)).convert("RGBA")
-                print("Successfully downloaded generated AI image for background.")
+                bg_img = bg_img.resize((800, 450), Image.Resampling.LANCZOS)
+                print("Successfully downloaded and resized base background image.")
             else:
-                print(f"Pollinations AI returned HTTP {resp.status_code} or too small content. Falling back to gradient background.")
+                print(f"Failed to download background image. Status: {resp.status_code}. Using gradient.")
         except Exception as e:
-            print(f"Failed to generate background image via AI API: {e}. Falling back to gradient.")
+            print(f"Failed to fetch background photo: {e}. Using gradient.")
 
         # 3. Compile the final composite image with typography overlays
         return self._generate_composite_image(clean_title, bg_img, output_path)
 
-    def _select_ai_image_prompt(self, title: str, category: Optional[str]) -> str:
+    def _select_unsplash_image_url(self, title: str, category: Optional[str]) -> str:
         title_lower = title.lower()
         
-        # Match keywords to select specific high-quality visual prompts
-        if "ヘッドホン" in title_lower or "イヤホン" in title_lower or "headphone" in title_lower or "earphone" in title_lower:
-            return "A stylish modern wireless noise-canceling headphones, warm workspace aesthetic background, close up shot, 3d render, cinematic lighting, 8k, photorealistic"
-        
-        if "マウス" in title_lower or "キーボード" in title_lower or "mouse" in title_lower or "keyboard" in title_lower:
-            return "A sleek high-end mechanical keyboard with glowing RGB keys and ergonomic wireless mouse on a clean workspace desk, close-up, cyberpunk ambient, 8k"
-        
-        if "掃除機" in title_lower or "ルンバ" in title_lower or "ロボット" in title_lower or "vacuum" in title_lower:
-            return "A futuristic smart robotic vacuum cleaner operating on a beautiful hardwood floor of a modern cozy living room, warm afternoon sunlight, 8k"
-            
-        if "トースター" in title_lower or "ホットクック" in title_lower or "炊飯器" in title_lower or "オーブン" in title_lower or "フライヤー" in title_lower:
-            return "A premium minimalist kitchen appliance on a clean white marble countertop, cozy breakfast environment, bright soft morning light, 8k, photorealistic"
+        # Unsplash premium photo pools for each category
+        pools = {
+            "headphones": [
+                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
+            ],
+            "pc": [
+                "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80"
+            ],
+            "kitchen": [
+                "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1520981764781-4ebcb47e9b15?w=800&auto=format&fit=crop&q=80"
+            ],
+            "beauty": [
+                "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&auto=format&fit=crop&q=80"
+            ],
+            "game": [
+                "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80"
+            ],
+            "gadget": [
+                "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&auto=format&fit=crop&q=80"
+            ]
+        }
 
-        if "ドライヤー" in title_lower or "ヘアアイロン" in title_lower or "ナノケア" in title_lower or "dryer" in title_lower:
-            return "A high-end hair dryer placed on a luxury marble bathroom vanity next to elegant cosmetics, soft beauty lighting, 8k, photorealistic"
+        # Match keywords in title first
+        if any(w in title_lower for w in ["ヘッドホン", "イヤホン", "headphone", "earphone", "audio"]):
+            return random.choice(pools["headphones"])
+        if any(w in title_lower for w in ["マウス", "キーボード", "mouse", "keyboard", "pc", "デスク"]):
+            return random.choice(pools["pc"])
+        if any(w in title_lower for w in ["トースター", "ホットクック", "炊飯器", "掃除機", "ルンバ", "kitchen", "cooker"]):
+            return random.choice(pools["kitchen"])
+        if any(w in title_lower for w in ["ドライヤー", "ヘアアイロン", "ナノケア", "beauty", "hair"]):
+            return random.choice(pools["beauty"])
+        if any(w in title_lower for w in ["ゲーム", "コントローラー", "ps5", "switch", "game"]):
+            return random.choice(pools["game"])
 
-        if "ゲーム" in title_lower or "コントローラー" in title_lower or "ps5" in title_lower or "switch" in title_lower or "controller" in title_lower:
-            return "An immersive gaming setup with custom RGB neon lighting, futuristic game console controller, highly detailed gaming room background, 8k, unreal engine 5 style"
+        # Fallback to category pools
+        if category in pools:
+            return random.choice(pools[category])
 
-        # Category-based default prompts
-        if category == "gadget":
-            return "A sleek modern high-tech device on a futuristic display stand, ambient purple and blue neon glowing background, 8k, photorealistic"
-        elif category == "pc":
-            return "A premium clean PC desk setup, multiple monitors, mechanical keyboard, plant, minimalist workspace, warm studio light, 8k"
-        elif category == "kitchen":
-            return "A beautiful modern kitchen interior with warm ambient lighting, elegant kitchen gadgets, luxury aesthetic, 8k"
-        elif category == "beauty":
-            return "A luxury cosmetics and beauty devices display, soft focus, pastel colors, natural daylight, 8k"
-        elif category == "game":
-            return "A cool gaming setup with colorful lighting, stylish headphone and keyboard, futuristic gaming console, 8k"
-
-        # Universal fallback prompt
-        return "A collection of premium modern high-tech gadgets and smart devices on a dark glowing ambient surface, photorealistic, cinematic lighting, 8k"
+        # Universal fallback (Gadgets display)
+        return random.choice(pools["gadget"])
 
     def _load_font(self, size: int):
-        """日本語表示に対応したフォントをロードする。見つからなければNoto Sans JPを自動DL。"""
         jp_font_paths = [
-            # macOS ヒラギノ角ゴシック
             "/System/Library/Fonts/ヒラギノ角ゴシック W8.ttc",
             "/System/Library/Fonts/ヒラギノ角ゴシック W9.ttc",
             "/System/Library/Fonts/Hiragino Sans GB.ttc",
-            # Ubuntu / GitHub Actions (apt install fonts-noto-cjk)
             "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
             "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
             "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
             "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
-            # ローカルキャッシュ
             os.path.join(os.path.dirname(__file__), "fonts", "NotoSansJP-Bold.ttf"),
-            # Windows
             "C:\\Windows\\Fonts\\meiryo.ttc",
             "C:\\Windows\\Fonts\\msgothic.ttc",
         ]
@@ -123,7 +134,6 @@ class ImageGenerator:
         return ImageFont.load_default()
 
     def _download_noto_sans_jp(self) -> Optional[str]:
-        """Google Fonts から Noto Sans JP Bold をダウンロードしてローカルにキャッシュ。"""
         font_dir = os.path.join(os.path.dirname(__file__), "fonts")
         font_path = os.path.join(font_dir, "NotoSansJP-Bold.ttf")
         if os.path.exists(font_path):
@@ -172,30 +182,22 @@ class ImageGenerator:
         line_height = char_height + line_spacing
         
         for line in lines[:3]:
-            # Drop shadow
             draw.text((x + 2, y + 2), line, fill=(10, 10, 15, 180), font=font)
-            # Main text
             draw.text((x, y), line, fill=fill, font=font)
             y += line_height
 
     def _generate_composite_image(self, clean_title: str, bg_img: Optional[Image.Image], output_path: str, size: Tuple[int, int] = (800, 450)) -> str:
-        print("Generating composite premium eyecatch with AI background...")
+        print("Generating composite premium eyecatch with Unsplash background...")
         width, height = size
         
-        # 1. Background Initialization (Use AI-generated image or fallback to premium gradient)
         if bg_img:
-            # Scale background image to fit the size perfectly
             image = bg_img.resize(size, Image.Resampling.LANCZOS)
             draw = ImageDraw.Draw(image)
             
-            # Draw a dark overlay to make text more readable
             overlay = Image.new("RGBA", size, (0, 0, 0, 0))
             overlay_draw = ImageDraw.Draw(overlay)
-            
-            # Soft black gradient overlay from left to right (heavier on the left side where text sits)
             for x in range(width):
-                # Gradient opacity: 200 (left) down to 80 (right)
-                alpha = int(210 - (130 * (x / width)))
+                alpha = int(215 - (135 * (x / width)))
                 overlay_draw.line([(x, 0), (x, height)], fill=(12, 16, 26, alpha))
                 
             image = Image.alpha_composite(image, overlay)
@@ -203,7 +205,6 @@ class ImageGenerator:
         else:
             image = Image.new("RGBA", size)
             draw = ImageDraw.Draw(image)
-            # Fallback Premium Gradient Background (Deep Blue-Grey to rich Slate)
             color_start = (20, 24, 33)
             color_end = (41, 55, 91)
             for y in range(height):
@@ -213,7 +214,6 @@ class ImageGenerator:
                 b = int(color_start[2] + (color_end[2] - color_start[2]) * ratio)
                 draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
 
-        # 2. Outer Premium Frame / Card Border
         card_margin = 25
         draw.rounded_rectangle(
             [card_margin, card_margin, width - card_margin, height - card_margin],
@@ -223,35 +223,32 @@ class ImageGenerator:
             width=2
         )
 
-        # 3. Fonts Loading
         font_large = self._load_font(32)
         font_medium = self._load_font(20)
         font_small = self._load_font(12)
 
-        # 4. Content Layout (Left-aligned elegant card styling)
-        # Badge: "RECOMMENDED"
+        # recommended badge
         badge_x1, badge_y1 = 60, 60
         badge_x2, badge_y2 = 195, 88
         draw.rounded_rectangle([badge_x1, badge_y1, badge_x2, badge_y2], radius=6, fill="#FF9900")
         draw.text((badge_x1 + 16, badge_y1 + 4), "RECOMMENDED", fill=(255, 255, 255, 255), font=font_small)
 
-        # Title (wrapped with high contrast white text)
+        # title
         title_x, title_y = 60, 115
         max_title_width = 460
         self._draw_wrapped_text(draw, clean_title, (title_x, title_y), font_large, max_title_width, (255, 255, 255, 255))
 
-        # Subtitle / Footer
+        # subtitle
         sub_text = "Latest Hot Selling Gadget Review & Specs"
         draw.text((60, 265), sub_text, fill=(210, 215, 225, 200), font=font_medium)
 
-        # Amazon CTA Button
+        # Amazon button
         btn_x1, btn_y1 = 60, 325
         btn_x2, btn_y2 = 295, 375
         draw.rounded_rectangle([btn_x1, btn_y1, btn_x2, btn_y2], radius=25, fill="#FF9900")
         draw.text((btn_x1 + 22, btn_y1 + 13), "Amazonで詳細を見る ➔", fill=(255, 255, 255, 255), font=font_medium)
 
-        # Save to output path
         rgb_image = image.convert("RGB")
         rgb_image.save(output_path, "PNG")
-        print(f"Premium AI-composed eyecatch saved successfully to: {output_path}")
+        print(f"Premium eyecatch saved successfully to: {output_path}")
         return output_path

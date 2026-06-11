@@ -118,6 +118,16 @@ class ArticleGenerator:
         # Convert Markdown to HTML for Hatena Blog compatibility
         import markdown
         html_output = markdown.markdown(raw_article, extensions=['nl2br'])
+        
+        # Force all <a> tags to open in a new tab (target="_blank" rel="noopener noreferrer")
+        def add_target_blank(match):
+            tag = match.group(0)
+            if 'target=' not in tag:
+                # Add target and rel
+                tag = tag.replace('<a ', '<a target="_blank" rel="noopener noreferrer" ')
+            return tag
+            
+        html_output = re.sub(r'<a\s+[^>]*>', add_target_blank, html_output)
         return html_output
 
     def _generate_with_gemini(self, prompt: str) -> Optional[str]:
@@ -130,7 +140,7 @@ class ArticleGenerator:
         payload = {
             "contents": [{
                 "parts": [{
-                    "text": "あなたはプロのモノ系ブロガー・レビューライターです。読者に寄り添った自然で魅力的な日本語を使い、指示された厳格なルールと章構成を完全に守り、余計な挨拶や解説を一切含まないブログ本文のみを出力します。\n\n" + prompt
+                    "text": "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示された厳格なルールと章構成を完全に守り、余計な挨拶や解説を一切含まないブログ本文のみを出力します。\n\n" + prompt
                 }]
             }],
             "generationConfig": {
@@ -162,7 +172,7 @@ class ArticleGenerator:
         payload = {
             "model": "gpt-4o-mini",
             "messages": [
-                {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
+                {"role": "system", "content": "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.7
@@ -190,7 +200,7 @@ class ArticleGenerator:
         payload = {
             "model": "google/gemma-2-9b-it:free",
             "messages": [
-                {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。指示された厳格なルールを守り、余計な解説を一切含まない日本語ブログ本文のみを出力します。"},
+                {"role": "system", "content": "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示された厳格なルールを守り、余計な解説を一切含まない日本語ブログ本文のみを出力します。"},
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.7
@@ -218,7 +228,7 @@ class ArticleGenerator:
             "Content-Type": "application/json"
         }
         payload = {
-            "inputs": f"<|im_start|>system\nあなたはプロのモノ系ブロガー・レビューライターです。日本語で余計な前置きや後書きなしに、本文のみを出力します。<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+            "inputs": f"<|im_start|>system\nあなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。日本語で余計な前置きや後書きなしに、本文のみを出力します。<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
             "parameters": {
                 "max_new_tokens": 1500,
                 "temperature": 0.7
@@ -248,7 +258,7 @@ class ArticleGenerator:
         for attempt, model in enumerate(models):
             payload = {
                 "messages": [
-                    {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
+                    {"role": "system", "content": "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
                     {"role": "user", "content": prompt}
                 ],
                 "model": model
