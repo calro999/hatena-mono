@@ -3,7 +3,7 @@ import sys
 from amazon_api import AmazonPAAPI
 from article_generator import ArticleGenerator
 from image_generator import ImageGenerator
-from email_poster import HatenaEmailPoster
+from hatena_api import HatenaAPI
 
 def main():
     print("=== Starting Amazon Hatena Blog Auto Poster ===")
@@ -16,22 +16,17 @@ def main():
     amz_host = os.environ.get("AMAZON_HOST", "webservices.amazon.co.jp")
     amz_region = os.environ.get("AMAZON_REGION", "us-west-2")
     
-    # SMTP Settings for Hatena Blog Post
-    smtp_host = os.environ.get("SMTP_HOST", "")
-    try:
-        smtp_port = int(os.environ.get("SMTP_PORT", "465"))
-    except ValueError:
-        smtp_port = 465
-    smtp_user = os.environ.get("SMTP_USER", "")
-    smtp_pass = os.environ.get("SMTP_PASS", "")
-    target_email = os.environ.get("HATENA_BLOG_EMAIL", "")
+    # Hatena API Settings
+    hatena_id = os.environ.get("HATENA_ID", "DUMMY_ID")
+    blog_id = os.environ.get("HATENA_BLOG_ID", "DUMMY_BLOG_ID")
+    api_key = os.environ.get("HATENA_API_KEY", "")
 
     # Content Settings
     search_keywords = os.environ.get("SEARCH_KEYWORDS", "最新ガジェット")
     
-    # Check SMTP configuration
-    if not smtp_host or not smtp_user or not smtp_pass or not target_email:
-        print("Warning: SMTP configuration is incomplete. Running in DRY-RUN/DEMO mode.")
+    # Check Hatena API configuration
+    if not api_key:
+        print("Warning: HATENA_API_KEY is not set. Running in DRY-RUN/DEMO mode.")
         dry_run = True
     else:
         dry_run = False
@@ -72,26 +67,32 @@ def main():
     
     title = f"【話題の新商品】本当に買い？「{target_item['title']}」徹底レビュー・お得情報まとめ"
 
-    # 5. Post to Hatena Blog
-    print("Sending post via Email...")
-    poster = HatenaEmailPoster(
-        smtp_host=smtp_host,
-        smtp_port=smtp_port,
-        smtp_user=smtp_user,
-        smtp_pass=smtp_pass,
-        target_email=target_email
+    # 5. Post to Hatena Blog via API
+    print("Initializing Hatena API Client...")
+    hatena_client = HatenaAPI(
+        hatena_id=hatena_id,
+        blog_id=blog_id,
+        api_key=api_key
     )
-    
-    success = poster.send_post(
+
+    # Upload eyecatch to Fotolife first
+    uploaded_image_url = hatena_client.upload_image_to_fotolife(eyecatch_path)
+    if uploaded_image_url:
+        print("Inserting uploaded image to the beginning of the article.")
+        img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{uploaded_image_url}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>'
+        article_content = img_html + article_content
+
+    # Post Entry
+    success = hatena_client.post_entry(
         title=title,
         html_content=article_content,
-        image_path=eyecatch_path
+        is_draft=False
     )
     
     if success:
         print("=== Auto Post Process Completed Successfully! ===")
     else:
-        print("=== Auto Post Process Failed at Email Sending Stage. ===")
+        print("=== Auto Post Process Failed at Posting Stage. ===")
         sys.exit(1)
 
 if __name__ == "__main__":

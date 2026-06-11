@@ -49,12 +49,10 @@ jobs:
         AMAZON_HOST: "webservices.amazon.co.jp"
         AMAZON_REGION: "us-west-2"
 
-        # SMTP Settings for Hatena Blog
-        SMTP_HOST: ${{ secrets.SMTP_HOST }}
-        SMTP_PORT: ${{ secrets.SMTP_PORT }}
-        SMTP_USER: ${{ secrets.SMTP_USER }}
-        SMTP_PASS: ${{ secrets.SMTP_PASS }}
-        HATENA_BLOG_EMAIL: ${{ secrets.HATENA_BLOG_EMAIL }}
+        # Hatena API Settings
+        HATENA_ID: ${{ secrets.HATENA_ID }}
+        HATENA_BLOG_ID: ${{ secrets.HATENA_BLOG_ID }}
+        HATENA_API_KEY: ${{ secrets.HATENA_API_KEY }}
 
         # Options
         SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || '最新人気ガジェット' }}
