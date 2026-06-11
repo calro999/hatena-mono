@@ -1,29 +1,17 @@
 import os
 import re
-from typing import Dict, Any
+import requests
+import json
+import time
+from typing import Dict, Any, Optional, List
 
 class ArticleGenerator:
-    def __init__(self, model_id: str = "Qwen/Qwen2.5-1.5B-Instruct", use_hf_cache: bool = True):
-        self.model_id = model_id
-        self.cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
-        self.tokenizer = None
-        self.model = None
+    def __init__(self, model_id: str = ""):
+        pass
 
     def load_model(self):
-        try:
-            print(f"Loading tokenizer & model for {self.model_id}...")
-            import torch
-            from transformers import AutoModelForCausalLM, AutoTokenizer
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir=self.cache_dir)
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_id,
-                cache_dir=self.cache_dir,
-                torch_dtype=torch.float32,  # CPU friendly
-                device_map="cpu"
-            )
-            print("Model loaded successfully.")
-        except Exception as e:
-            print(f"Failed to load model: {e}. Fallback template will be used.")
+        print("ArticleGenerator: Initialized using online free API router (No local models loaded).")
+        pass
 
     def generate_review_article(self, item: Dict[str, Any]) -> str:
         title = item.get("title", "")
@@ -61,141 +49,212 @@ class ArticleGenerator:
 1. ブログ記事の**本文のみ**を出力してください。挨拶文（「承知しました」「以下が記事です」など）や、記事の解説、まとめのアドバイス（「以上のように、自然な言葉遣い〜」「購入につなげることができます」など）は**絶対に1文字も出力しないでください**。記事の最後は「ぜひチェックしてみてください！」などの読者へのメッセージで終了させてください。
 2. 「アフィリエイト」「アフィリンク」「誘導」「広告」といった、読者に商業的な意図を直接感じさせる言葉は**見出し・本文含め、絶対に記事内に出力しないでください**。
 3. 記事はMarkdown（マークダウン）形式で執筆してください。見出しは「## 」「### 」を使用し、箇条書きは「- 」を使用してください。
-4. 商品リンクは、文末付近に自然な形で `[Amazonで「{clean_title}」の価格やクチコミをチェックする]({url})` のようにMarkdown of the リンク記法で埋め込んでください。
+4. 商品リンクは、文末付近に自然な形で `[Amazonで「{clean_title}」の価格やクチコミをチェックする]({url})` のようにMarkdownのリンク記法で埋め込んでください。
 """
 
-        if self.model is None or self.tokenizer is None:
-            return self._generate_fallback_article(item)
+        # Trial order of Free LLM APIs
+        generators = [
+            ("Gemini API (Free Tier)", self._generate_with_gemini),
+            ("GitHub Models API (Free for Actions/PAT)", self._generate_with_github_models),
+            ("OpenRouter Free API", self._generate_with_openrouter),
+            ("Hugging Face API (Free Tier)", self._generate_with_huggingface),
+            ("Pollinations AI Free (No Key Required)", self._generate_with_pollinations),
+            ("DuckDuckGo Chat Free (No Key Required)", self._generate_with_duckduckgo),
+        ]
 
-        try:
-            messages = [
-                {
-                    "role": "system", 
-                    "content": "あなたはプロのモノ系ブロガー・レビューライターです。読者に寄り添った自然で魅力的な日本語を使い、指示された厳格なルールと章構成を完全に守り、余計な挨拶や解説を一切含まないブログ本文のみを出力します。"
-                },
-                {"role": "user", "content": prompt}
-            ]
-            text = self.tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=True
-            )
-            model_inputs = self.tokenizer([text], return_tensors="pt").to("cpu")
+        raw_article = None
+        for name, gen_fn in generators:
+            try:
+                print(f"Attempting article generation with {name}...")
+                res = gen_fn(prompt)
+                if res and len(res.strip()) > 300:
+                    raw_article = res.strip()
+                    print(f"Successfully generated article using {name}!")
+                    break
+                else:
+                    print(f"{name} returned empty or too short response. Trying next fallback...")
+            except Exception as e:
+                print(f"Error calling {name}: {e}. Trying next fallback...")
 
-            generated_ids = self.model.generate(
-                model_inputs.input_ids,
-                max_new_tokens=1500,
-                temperature=0.7,
-                top_p=0.9,
-                do_sample=True
-            )
-            generated_ids = [
-                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-            ]
-
-            response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-            
-            # --- Robust Post-Processing to remove meta-explanations ---
-            response = re.sub(r"^(はい、|承知いたしました。|以下が商品紹介記事です。|以下に記事を出力します。|以下が執筆した記事です。)\s*", "", response)
-            
-            meta_markers = [
-                "以上のように",
-                "このように、",
-                "自然な言葉遣いと",
-                "アフィリエイトリンクへの",
-                "読者は商品の魅力を理解し",
-                "購入につなげることができます"
-            ]
-            for marker in meta_markers:
-                if marker in response:
-                    print(f"Truncating AI meta-explanation found at marker: '{marker}'")
-                    response = response.split(marker)[0].rstrip()
-
-            # Convert Markdown to HTML
-            import markdown
-            html_output = markdown.markdown(response, extensions=['nl2br'])
-            return html_output
-
-        except Exception as e:
-            print(f"Error during text generation: {e}. Falling back to template-based generation.")
-            return self._generate_fallback_article(item)
-
-    def _generate_fallback_article(self, item: Dict[str, Any]) -> str:
-        title = item.get("title", "")
-        clean_title = item.get("clean_title", title)
-        features_list = item.get("features", [])
-        
-        # Format feature bullet points with premium emojis
-        features_html = ""
-        for f in features_list:
-            parts = f.split(":", 1)
-            if len(parts) == 2:
-                features_html += f"<li><strong>✨ {parts[0].strip()}:</strong> {parts[1].strip()}</li>"
+        # If all LLM APIs failed
+        if not raw_article:
+            # Check if we are running in GitHub Actions (production)
+            if os.environ.get("GITHUB_ACTIONS") == "true":
+                raise RuntimeError("All free LLM APIs failed to generate a valid review article in GitHub Actions. Cannot proceed to prevent posting spam templates.")
             else:
-                features_html += f"<li><strong>✨ 特徴:</strong> {f}</li>"
-                
-        price = item.get("price", "")
-        url = item.get("url", "")
+                # Local dry-run fallback to allow testing without failing the script execution
+                print("WARNING: All free LLM APIs failed or are rate-limited. Since this is a local dry-run, generating dummy review text to verify downstream components.")
+                raw_article = f"""## 1. はじめに：なぜ今この商品が注目されているのか？
+これはローカル開発環境でのドライラン検証用のテスト記事です。現在、すべてのオンライン無料LLM APIがレート制限またはキー未設定のため利用できませんでした。
+
+## 2. デザインと携帯性：洗練されたスタイルと使いやすさ
+この製品は優れたデザインとコンパクトさを兼ね備えています。
+
+## 3. 実力検証：使ってわかった圧倒的なパフォーマンス
+テスト特徴1、特徴2、特徴3により、非常に高いレベルの実用性を誇ります。
+
+## 4. 本音でレビュー：メリットと購入前に知っておきたい注意点
+デメリットとしては、オンラインLLM接続が切れている場合に自動投稿ができない点が挙げられます。
+
+## 5. まとめ：どんな人におすすめ？
+この検証テキストはローカルでのアイキャッチ画像や投稿プロセスの疎通確認用です。
+[Amazonで「{clean_title}」の価格やクチコミをチェックする]({url})
+ぜひチェックしてみてください！"""
+
+        # Post-Processing to clean up LLM meta-explanations
+        raw_article = re.sub(r"^(はい、|承知いたしました。|以下が商品紹介記事です。|以下に記事を出力します。|以下が執筆した記事です。)\s*", "", raw_article)
+        meta_markers = [
+            "以上のように",
+            "このように、",
+            "自然な言葉遣いと",
+            "アフィリエイトリンクへの",
+            "読者は商品の魅力を理解し",
+            "購入につなげることができます"
+        ]
+        for marker in meta_markers:
+            if marker in raw_article:
+                print(f"Truncating AI meta-explanation found at marker: '{marker}'")
+                raw_article = raw_article.split(marker)[0].rstrip()
+
+        # Convert Markdown to HTML for Hatena Blog compatibility
+        import markdown
+        html_output = markdown.markdown(raw_article, extensions=['nl2br'])
+        return html_output
+
+    def _generate_with_gemini(self, prompt: str) -> Optional[str]:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            return None
         
-        image_html = ""
-        if item.get("image_url"):
-            image_html = f"""
-            <div style="text-align: center; margin: 30px 0;">
-                <img src="{item.get('image_url')}" alt="{clean_title}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.08); transition: transform 0.3s ease;">
-                <p style="font-size: 13px; color: #888; margin-top: 8px;">(画像出典: Amazon)</p>
-            </div>
-            """
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": "あなたはプロのモノ系ブロガー・レビューライターです。読者に寄り添った自然で魅力的な日本語を使い、指示された厳格なルールと章構成を完全に守り、余計な挨拶や解説を一切含まないブログ本文のみを出力します。\n\n" + prompt
+                }]
+            }],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 2000
+            }
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200:
+            data = resp.json()
+            try:
+                return data["candidates"][0]["content"]["parts"][0]["text"]
+            except KeyError:
+                return None
+        return None
 
-        # Generate a high-volume, premium quality fallback review article
-        return f"""
-<div style="font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; line-height: 1.8; color: #333; max-width: 700px; margin: 0 auto;">
+    def _generate_with_github_models(self, prompt: str) -> Optional[str]:
+        token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+        if not token:
+            return None
+        
+        # GitHub Models API endpoint
+        url = "https://models.inference.ai.azure.com/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.7
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200:
+            try:
+                return resp.json()["choices"][0]["message"]["content"]
+            except (KeyError, IndexError):
+                return None
+        return None
 
-    <p>こんにちは！ガジェットと暮らしのモノ選びを楽しむライフスタイルブログへようこそ。</p>
-    <p>現代の生活において、私たちの周りは多くのデジタルツールやスマートなガジェットで溢れています。しかし、そのすべてが「本当に私たちの生活を豊かにし、快適にしてくれるか」というと、そうではないこともありますよね。</p>
-    <p>今回ピックアップしてご紹介するのは、現在SNSや各種ECサイトで爆発的な支持を集め、レビューでも絶賛の嵐が巻き起こっている大注目のプロダクト、<strong>「{title}」</strong>です！</p>
-    <p>このアイテムがなぜこれほどまでに多くの人々を魅了し、暮らしの定番アイテムとなっているのか。その魅力と実力、性能を徹底的に解き明かしていきます。</p>
+    def _generate_with_openrouter(self, prompt: str) -> Optional[str]:
+        api_key = os.environ.get("OPENROUTER_API_KEY")
+        if not api_key:
+            return None
+        
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "google/gemma-2-9b-it:free",
+            "messages": [
+                {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。指示された厳格なルールを守り、余計な解説を一切含まない日本語ブログ本文のみを出力します。"},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.7
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200:
+            data = resp.json()
+            try:
+                return data["choices"][0]["message"]["content"]
+            except KeyError:
+                return None
+        return None
 
-    {image_html}
+    def _generate_with_huggingface(self, prompt: str) -> Optional[str]:
+        api_key = os.environ.get("HF_API_KEY") or os.environ.get("HF_TOKEN")
+        if not api_key:
+            return None
+        
+        model_id = "Qwen/Qwen2.5-72B-Instruct"
+        url = f"https://api-inference.huggingface.co/models/{model_id}"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "inputs": f"<|im_start|>system\nあなたはプロのモノ系ブロガー・レビューライターです。日本語で余計な前置きや後書きなしに、本文のみを出力します。<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+            "parameters": {
+                "max_new_tokens": 1500,
+                "temperature": 0.7
+            }
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=45)
+        if resp.status_code == 200:
+            data = resp.json()
+            try:
+                text = data[0]["generated_text"]
+                if "assistant\n" in text:
+                    return text.split("assistant\n")[-1]
+                return text
+            except (KeyError, IndexError):
+                return None
+        return None
 
-    <h2 style="border-left: 5px solid #FF9900; padding-left: 15px; margin-top: 40px; margin-bottom: 20px; font-size: 22px;">1. なぜ今この商品が注目されているのか？</h2>
-    <p>日々の暮らしやオフィスワーク、外出先でのアクティビティなど、あらゆるシーンで私たちは小さなストレスに直面しています。重い機材の持ち歩きや、充電切れの心配、操作性の悪さなど、どれも「少しの我慢」で済ませてしまいがちです。</p>
-    <p><strong>「{clean_title}」</strong>は、まさにそうした日常の「ちょっとした不便」をスマートに解決するために開発されました。最先端の設計と洗練された使い勝手を両立させることで、単なるツールを超えた「手放せないパートナー」としての地位を確立しています。価格は<strong>{price}</strong>となっており、その実力と体験価値を考えれば、非常に高いコストパフォーマンスを誇っていると言えます。</p>
+    def _generate_with_pollinations(self, prompt: str) -> Optional[str]:
+        """完全無料・認証不要の Pollinations AI テキストAPIを利用。429回避のリトライ付き。"""
+        url = "https://text.pollinations.ai/"
+        payload = {
+            "messages": [
+                {"role": "system", "content": "あなたはプロのモノ系ブロガー・レビューライターです。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
+                {"role": "user", "content": prompt}
+            ],
+            "model": "openai"
+        }
+        
+        # 429 queue full recovery retry
+        for attempt in range(3):
+            resp = requests.post(url, json=payload, timeout=25)
+            if resp.status_code == 200:
+                return resp.text
+            elif resp.status_code == 429:
+                print(f"Pollinations AI text returned 429 (Queue full). Waiting {attempt + 2}s before retry...")
+                time.sleep(attempt + 2)
+            else:
+                break
+        return None
 
-    <h2 style="border-left: 5px solid #FF9900; padding-left: 15px; margin-top: 40px; margin-bottom: 20px; font-size: 22px;">2. デザインと携帯性：洗練されたスタイル</h2>
-    <p>この製品を初めて手にしたときに誰もが驚くのが、無駄を徹底的に削ぎ落としたミニマルな外観デザインです。インテリアや他の持ち物と完璧に調和するスタイリッシュな佇まいは、所有する喜びそのものを満たしてくれます。</p>
-    <p>また、軽量かつ極限までコンパクトに設計されているため、バッグの片隅やポケットにも無理なく収まります。「機能性が高い製品は大きくて重い」というこれまでの常識を覆し、必要なときにすぐそばにある手軽さを実現しています。</p>
-
-    <h2 style="border-left: 5px solid #FF9900; padding-left: 15px; margin-top: 40px; margin-bottom: 20px; font-size: 22px;">3. 実力検証：際立つ特徴と圧倒的メリット</h2>
-    <p>それでは、具体的にどのような性能を持っているのか、この商品の誇るべき強みを詳しく見ていきましょう。</p>
-    
-    <ul style="list-style-type: none; padding-left: 0; margin: 20px 0;">
-        {features_html}
-    </ul>
-    
-    <p>これらの機能がただスペックシート上に存在するだけでなく、実際の使用感においても見事に調和して機能します。使えば使うほど、メーカーの開発チームがユーザーの実際の行動パターンを研究し尽くして設計したことが伝わってきます。</p>
-
-    <h2 style="border-left: 5px solid #FF9900; padding-left: 15px; margin-top: 40px; margin-bottom: 20px; font-size: 22px;">4. 本音でレビュー：購入前に知っておきたいポイント</h2>
-    <p>本音での徹底レビューとして、良い面だけでなく、あえて気になる点や注意すべきポイントについても触れておきます。</p>
-    <p>この製品は極めて完成度が高いものの、その高い性能を引き出すためには、適切な接続環境やセットアップが必要です。また、シンプルさを追求した結果、複雑なマニュアル設定を行いたい上級ユーザーにとっては、少々シンプルすぎると感じる部分もあるかもしれません。しかし、これらは「誰もが直感的に、失敗なく快適に使える」という最大のメリットの裏返しでもあります。</p>
-
-    <h2 style="border-left: 5px solid #FF9900; padding-left: 15px; margin-top: 40px; margin-bottom: 20px; font-size: 22px;">5. まとめ：どんな人におすすめ？</h2>
-    <p><strong>「{clean_title}」</strong>は、以下のような悩みをお持ちの方に自信を持っておすすめできる製品です。</p>
-    <ul style="padding-left: 20px; margin: 15px 0;">
-        <li>日々の生活や仕事を効率化し、スマートにアップデートしたい方</li>
-        <li>デザインと機能性、どちらも妥協したくないこだわり派の方</li>
-        <li>持ち物をできるだけ減らし、ミニマルで快適な移動を行いたい方</li>
-    </ul>
-    <p>これ一つを取り入れるだけで、あなたの毎日が驚くほど快適に、そして少しだけ特別なものに変わるはずです。</p>
-    <p>人気アイテムのため、タイミングによっては在庫が少なくなっていることもあります。気になった方は、ぜひ以下のリンクから詳細やレビューをチェックしてみてください！</p>
-
-    <div style="text-align: center; margin: 40px 0 20px 0;">
-        <a href="{url}" style="display: inline-block; background: #FF9900; color: #fff; padding: 16px 32px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,153,0,0.3); transition: all 0.3s ease; text-align: center;">
-            Amazonで「{clean_title}」を見る 🛒
-        </a>
-        <p style="font-size: 12px; color: #666; margin-top: 10px;">※上記リンク先から現在の販売価格や在庫状況、実際のユーザー評価を確認できます。</p>
-    </div>
-
-</div>
-"""
-
-
+    def _generate_with_duckduckgo(self, prompt: str) -> Optional[str]:
+        # Legacy placeholder, keep signature for fallback compatibility
+        return None

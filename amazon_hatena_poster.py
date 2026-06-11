@@ -22,8 +22,30 @@ def main():
     api_key = os.environ.get("HATENA_API_KEY", "")
 
     # Content Settings
-    search_keywords = os.environ.get("SEARCH_KEYWORDS", "最新ガジェット")
+    search_keywords = os.environ.get("SEARCH_KEYWORDS", "").strip()
     
+    trending_keywords = [
+        "タイムセール ガジェット",
+        "タイムセール 家電",
+        "タイムセール パソコン",
+        "Anker タイムセール",
+        "Logicool マウス",
+        "スマートウォッチ タイムセール",
+        "ノイズキャンセリングヘッドホン セール",
+        "防災グッズ タイムセール",
+        "Switch ゲーム 人気"
+    ]
+    
+    if not search_keywords:
+        import datetime
+        now = datetime.datetime.now()
+        # 日付 × 時刻帯でインデックスを決定（同日2回実行でも違うキーワードになる）
+        idx = (now.toordinal() * 7 + now.hour) % len(trending_keywords)
+        search_keywords = trending_keywords[idx]
+        print(f"キーワード未指定 → 自動ローテーション: '{search_keywords}'")
+    else:
+        print(f"Using user provided keywords: '{search_keywords}'")
+
     # Check Hatena API configuration
     if not api_key:
         print("Warning: HATENA_API_KEY is not set. Running in DRY-RUN/DEMO mode.")
@@ -31,7 +53,18 @@ def main():
     else:
         dry_run = False
 
-    # 2. Fetch Item from Amazon
+    # Initialize Hatena API Client first to check recent entries for duplication
+    print("Initializing Hatena API Client...")
+    hatena_client = HatenaAPI(
+        hatena_id=hatena_id,
+        blog_id=blog_id,
+        api_key=api_key
+    )
+    
+    recent_titles = hatena_client.get_recent_titles()
+    recent_titles_str = " ".join(recent_titles).lower()
+
+    # 2. Fetch Items from Amazon
     print(f"Fetching hot items from Amazon for keywords: '{search_keywords}'...")
     amazon_client = AmazonPAAPI(
         access_key=amz_access_key,
@@ -41,13 +74,35 @@ def main():
         region=amz_region
     )
     
-    items = amazon_client.search_items(keywords=search_keywords, item_count=3)
+    items = amazon_client.search_items(keywords=search_keywords, item_count=10)
     if not items:
         print("Error: No items fetched from Amazon. Exiting.")
         sys.exit(1)
         
-    print(f"Successfully fetched {len(items)} items. Selecting the top item for review.")
-    target_item = items[0]
+    print(f"Successfully fetched {len(items)} items. Checking for duplicates in recent posts...")
+    
+    target_item = None
+    for item in items:
+        clean_name = item.get("clean_title", "").lower()
+        asin = item.get("asin", "").lower()
+        
+        is_duplicate = False
+        if clean_name and clean_name in recent_titles_str:
+            is_duplicate = True
+        if asin and asin in recent_titles_str:
+            is_duplicate = True
+            
+        if is_duplicate:
+            print(f"Skipping duplicate item: '{item['title']}' (Already posted recently)")
+            continue
+            
+        target_item = item
+        break
+        
+    if not target_item:
+        print("All fetched items have already been posted recently. Falling back to the first item to avoid failing.")
+        target_item = items[0]
+        
     print(f"Selected item: {target_item['title']} ({target_item['price']})")
 
     # 3. Generate Eyecatch Image
@@ -58,7 +113,8 @@ def main():
     img_gen.generate_eyecatch(
         prompt=target_item['title'], 
         output_path=eyecatch_path,
-        image_url=target_item.get('image_url')
+        image_url=target_item.get('image_url'),
+        category=target_item.get('category')
     )
 
     # 4. Generate Review Article
@@ -70,14 +126,6 @@ def main():
     
     clean_title = target_item.get("clean_title") or target_item["title"]
     title = f"【徹底レビュー】本当に買い？「{clean_title}」の実力を徹底検証！"
-
-    # 5. Post to Hatena Blog via API
-    print("Initializing Hatena API Client...")
-    hatena_client = HatenaAPI(
-        hatena_id=hatena_id,
-        blog_id=blog_id,
-        api_key=api_key
-    )
 
     # Upload eyecatch to Fotolife first
     uploaded_image_url = hatena_client.upload_image_to_fotolife(eyecatch_path)

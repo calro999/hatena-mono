@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 import datetime
 import hashlib
 import random
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 class HatenaAPI:
     def __init__(self, hatena_id: str, blog_id: str, api_key: str):
@@ -155,3 +155,40 @@ class HatenaAPI:
         except Exception as e:
             print(f"Failed to post entry to Hatena Blog: {e}")
             return False
+
+    def get_recent_titles(self) -> List[str]:
+        """Fetches the titles of recent blog posts from Hatena Blog."""
+        if not self.hatena_id or not self.blog_id or not self.api_key or self.hatena_id.startswith("DUMMY"):
+            print("Hatena API: Credentials not set or dummy mode. Returning empty title list.")
+            return []
+            
+        url = f"https://blog.hatena.ne.jp/{self.hatena_id}/{self.blog_id}/atom/entry"
+        headers = self._get_wsse_headers()
+        
+        req = urllib.request.Request(
+            url, 
+            headers=headers, 
+            method="GET"
+        )
+        
+        try:
+            print(f"Fetching recent entries from Hatena Blog ({self.blog_id})...")
+            with urllib.request.urlopen(req) as response:
+                if response.status in (200, 201):
+                    res_xml = response.read()
+                    root = ET.fromstring(res_xml)
+                    ns_atom = "{http://www.w3.org/2005/Atom}"
+                    
+                    titles = []
+                    for entry in root.findall(f'{ns_atom}entry'):
+                        title_el = entry.find(f'{ns_atom}title')
+                        if title_el is not None and title_el.text:
+                            titles.append(title_el.text)
+                    print(f"Successfully retrieved {len(titles)} recent post titles.")
+                    return titles
+                else:
+                    print(f"Failed to fetch recent entries. Status code: {response.status}")
+                    return []
+        except Exception as e:
+            print(f"Failed to fetch recent entries from Hatena Blog: {e}")
+            return []
