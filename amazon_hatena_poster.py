@@ -81,6 +81,10 @@ def main():
         print("Inserting uploaded image to the beginning of the article.")
         img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{uploaded_image_url}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>'
         article_content = img_html + article_content
+    elif target_item.get("image_url"):
+        print("Fotolife upload failed or skipped. Inserting Amazon official product image instead.")
+        img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{target_item["image_url"]}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>'
+        article_content = img_html + article_content
 
     # Post Entry
     success = hatena_client.post_entry(

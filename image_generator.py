@@ -4,7 +4,7 @@ import random
 from typing import Tuple
 
 class ImageGenerator:
-    def __init__(self, model_id: str = "Ondy/tiny-sd"):
+    def __init__(self, model_id: str = "segmind/tiny-sd"):
         self.model_id = model_id
         self.cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
         self.pipe = None

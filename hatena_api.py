@@ -6,9 +6,13 @@ from typing import Optional
 
 class HatenaAPI:
     def __init__(self, hatena_id: str, blog_id: str, api_key: str):
-        self.hatena_id = hatena_id
-        self.blog_id = blog_id
-        self.api_key = api_key
+        self.hatena_id = hatena_id.strip()
+        
+        # Clean blog_id (remove http://, https://, and trailing slashes/paths)
+        cleaned_blog_id = blog_id.replace("https://", "").replace("http://", "").split("/")[0].strip()
+        self.blog_id = cleaned_blog_id
+        
+        self.api_key = api_key.strip()
         
         # Build Basic Auth Header
         auth_str = f"{self.hatena_id}:{self.api_key}"
