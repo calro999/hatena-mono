@@ -14,7 +14,7 @@ class AmazonPAAPI:
         self.host = host
         self.region = region
         self.service = "ProductAdvertisingAPI"
-        self.path = "/paapi5/searchitems"
+        self.path = "/paapi5/search-items"
 
     def _sign(self, key: bytes, msg: str) -> bytes:
         return hmac.new(key, msg.encode("utf-8"), hashlib.sha256).digest()

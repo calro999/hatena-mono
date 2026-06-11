@@ -120,16 +120,14 @@ class HatenaAPI:
         draft_val = "yes" if is_draft else "no"
         url = f"https://blog.hatena.ne.jp/{self.hatena_id}/{self.blog_id}/atom/entry"
         
-        escaped_html = html_content.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
         xml_payload = f"""<?xml version="1.0" encoding="utf-8"?>
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:app="http://www.w3.org/2007/app">
   <title>{title}</title>
   <author><name>{self.hatena_id}</name></author>
-  <content type="text/html">
-    {escaped_html}
-  </content>
+  <content type="text/html"><![CDATA[
+{html_content}
+  ]]></content>
   <app:control>
     <app:draft>{draft_val}</app:draft>
   </app:control>
