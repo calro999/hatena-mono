@@ -44,13 +44,13 @@ class ArticleGenerator:
 5. AI特有の「〜はいかがでしょうか」「〜をご紹介します」「〜と言えるでしょう」「〜の特徴を持っています」といった説明調のテンプレフレーズを多用せず、人間が強いこだわりを持って書いたレビューのリアリティと熱量のある文体で書いてください。
 """
 
-        # Trial order of Free LLM APIs
+        # Trial order of LLM APIs
         generators = [
-            ("Gemini API (Free Tier)", self._generate_with_gemini),
+            ("Groq API (Llama 3.3 70B)", self._generate_with_groq),
             ("GitHub Models API (Free for Actions/PAT)", self._generate_with_github_models),
+            ("Gemini API (Free Tier)", self._generate_with_gemini),
             ("OpenRouter Free API", self._generate_with_openrouter),
             ("Hugging Face API (Free Tier)", self._generate_with_huggingface),
-            ("Pollinations AI Free (No Key Required)", self._generate_with_pollinations),
         ]
 
         raw_article = None
@@ -113,6 +113,40 @@ class ArticleGenerator:
             
         html_output = re.sub(r'<a\s+[^>]*>', add_target_blank, html_output)
         return html_output
+
+    def _generate_with_groq(self, prompt: str) -> Optional[str]:
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            return None
+        
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-8b-8192"]
+        sys_msg = "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"
+        
+        for model in models:
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": sys_msg},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.7
+            }
+            try:
+                res = requests.post(url, headers=headers, json=payload, timeout=30)
+                if res.status_code == 200:
+                    text = res.json()["choices"][0]["message"]["content"]
+                    if text and len(text.strip()) > 200:
+                        return text.strip()
+                else:
+                    print(f"Groq API ({model}) status: {res.status_code}")
+            except Exception as e:
+                print(f"Groq API ({model}) error: {e}")
+        return None
 
     def _generate_with_gemini(self, prompt: str) -> Optional[str]:
         api_key = os.environ.get("GEMINI_API_KEY")
@@ -230,34 +264,4 @@ class ArticleGenerator:
                 return None
         else:
             print(f"Hugging Face API returned status {resp.status_code}: {resp.text}")
-        return None
-
-    def _generate_with_pollinations(self, prompt: str) -> Optional[str]:
-        """Pollinations AIのテキスト生成。異なるモデルでPOSTリトライして429を回避します。"""
-        url = "https://text.pollinations.ai/"
-        
-        # Try different free models on Pollinations to spread load and avoid 429
-        models = ["openai", "qwen", "mistral"]
-        
-        for attempt, model in enumerate(models):
-            payload = {
-                "messages": [
-                    {"role": "system", "content": "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
-                    {"role": "user", "content": prompt}
-                ],
-                "model": model
-            }
-            try:
-                print(f"Trying Pollinations AI POST (model: {model}, attempt: {attempt+1})...")
-                resp = requests.post(url, json=payload, timeout=25)
-                if resp.status_code == 200 and len(resp.text.strip()) > 300:
-                    return resp.text
-                elif resp.status_code == 429:
-                    print(f"Pollinations AI {model} returned 429. Waiting {attempt+2}s before trying next model...")
-                    time.sleep(attempt+2)
-                else:
-                    print(f"Pollinations AI {model} returned status {resp.status_code}")
-            except Exception as e:
-                print(f"Pollinations POST attempt for {model} failed: {e}")
-            
         return None

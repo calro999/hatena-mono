@@ -1,4 +1,10 @@
 import os
+if os.path.exists(".env"):
+    with open(".env", "r", encoding="utf-8") as f:
+        for line in f:
+            if "=" in line and not line.strip().startswith("#"):
+                k, v = line.strip().split("=", 1)
+                os.environ.setdefault(k, v)
 import sys
 from amazon_api import AmazonPAAPI
 from article_generator import ArticleGenerator

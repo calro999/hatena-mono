@@ -55,5 +55,9 @@ jobs:
         # 空欄 or 未指定 → amazon_hatena_poster.py が自動でタイムセール/売れ筋キーワードをローテーション
         SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || '' }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       run: |
         python amazon_hatena_poster.py
