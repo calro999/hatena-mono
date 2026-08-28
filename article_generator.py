@@ -46,9 +46,9 @@ class ArticleGenerator:
 
         # Trial order of LLM APIs
         generators = [
+            ("Gemini API (Free Tier)", self._generate_with_gemini),
             ("Groq API (Llama 3.3 70B)", self._generate_with_groq),
             ("GitHub Models API (Free for Actions/PAT)", self._generate_with_github_models),
-            ("Gemini API (Free Tier)", self._generate_with_gemini),
             ("OpenRouter Free API", self._generate_with_openrouter),
             ("Hugging Face API (Free Tier)", self._generate_with_huggingface),
         ]
@@ -153,30 +153,45 @@ class ArticleGenerator:
         if not api_key:
             return None
         
-        for model_name in ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-            headers = {"Content-Type": "application/json"}
-            payload = {
-                "contents": [{
-                    "parts": [{
-                        "text": "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示された厳格なルールと章構成を完全に守り、余計な挨拶や解説を一切含まないブログ本文のみを出力します。\n\n" + prompt
-                    }]
-                }],
-                "generationConfig": {
-                    "temperature": 0.7,
-                    "maxOutputTokens": 2000
-                }
-            }
-            if "2.5" in model_name:
-                payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
+        models = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.0-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-3-flash",
+            "gemini-2.5-pro",
+            "gemini-3.1-pro"
+        ]
+        headers = {"Content-Type": "application/json"}
+        for model_name in models:
             try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{
+                        "parts": [{
+                            "text": "あなたはモノに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品を導入したことで日常がどう劇的に変わったかというライフスタイルへの変化（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示された厳格なルールと章構成を完全に守り、余計な挨拶や解説を一切含まないブログ本文のみを出力します。\n\n" + prompt
+                        }]
+                    }],
+                    "generationConfig": {
+                        "temperature": 0.7,
+                        "maxOutputTokens": 2000
+                    }
+                }
+                if any(v in model_name for v in ["2.5", "3.", "3-"]):
+                    payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
                 resp = requests.post(url, headers=headers, json=payload, timeout=30)
                 if resp.status_code == 200:
                     data = resp.json()
                     candidate = data.get("candidates", [{}])[0]
                     parts = candidate.get("content", {}).get("parts", [])
                     text = "".join(p.get("text", "") for p in parts if p.get("text")).strip()
-                    if len(text) > 200:
+                    if text and len(text) > 200:
+                        print(f"Successfully generated article via Gemini API ({model_name}).")
                         return text
                 else:
                     print(f"Gemini API ({model_name}) returned status {resp.status_code}: {resp.text[:100]}")

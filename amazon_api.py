@@ -113,14 +113,39 @@ class AmazonPAAPI:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             return None
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"responseMimeType": "application/json"}
-        }
-        resp = requests.post(url, json=payload, timeout=25)
-        if resp.status_code == 200:
-            return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        models = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.0-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-3-flash",
+            "gemini-2.5-pro",
+            "gemini-3.1-pro"
+        ]
+        for model_name in models:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"responseMimeType": "application/json"}
+                }
+                if any(v in model_name for v in ["2.5", "3.", "3-"]):
+                    payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
+                resp = requests.post(url, json=payload, timeout=25)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidate = data.get("candidates", [{}])[0]
+                    parts = candidate.get("content", {}).get("parts", [])
+                    text = "".join(p.get("text", "") for p in parts if p.get("text")).strip()
+                    if text:
+                        return text
+            except Exception as e:
+                print(f"Gemini API ({model_name}) error: {e}")
         return None
 
     def _call_github_models(self, prompt: str) -> Optional[str]:
