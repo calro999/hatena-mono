@@ -2,8 +2,8 @@ name: Amazon Hatena Blog Auto Poster
 
 on:
   schedule:
-    # 3時間おきに実行 (1日8回)
-    - cron: '0 */3 * * *'
+    # 30分おき (毎時3分、33分) に実行 (GitHub Actions混雑回避のためオフセット設定)
+    - cron: '3,33 * * * *'
   workflow_dispatch:
     inputs:
       search_keywords:
