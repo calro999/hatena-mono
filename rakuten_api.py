@@ -9,29 +9,80 @@ import time
 from typing import List, Dict, Any, Optional
 
 def clean_product_title(title: str) -> str:
-    """Extracts a clean, readable product name suitable for blog titles and CTA."""
-    cleaned = title
-    # Remove bracketed/parenthesized tags
-    cleaned = re.sub(r'【[^】]*】', '', cleaned)
-    cleaned = re.sub(r'［[^］]*］', '', cleaned)
-    cleaned = re.sub(r'\[[^\]]*\]', '', cleaned)
-    cleaned = re.sub(r'（[^）]*）', '', cleaned)
-    cleaned = re.sub(r'\([^)]*\)', '', cleaned)
+    """楽天特有のSEOキーワード詰め込みやPRタグを除去し、スマートで短い商品名に整形"""
+    if not title:
+        return "注目アイテム"
     
-    # Split by common delimiters and take the first portion if it's long enough
-    delimiters = [r'\s*\|\s*', r'\s*｜\s*', r'\s*-\s*', r'\s*－\s*', r'\s*:\s*']
+    cleaned = title
+    # 1. ブラケット・括弧とその中身を削除（【...】, ［...］, [...], （...）, (...)）
+    cleaned = re.sub(r'【[^】]*】', ' ', cleaned)
+    cleaned = re.sub(r'［[^］]*］', ' ', cleaned)
+    cleaned = re.sub(r'\[[^\]]*\]', ' ', cleaned)
+    cleaned = re.sub(r'（[^）]*）', ' ', cleaned)
+    cleaned = re.sub(r'\([^)]*\)', ' ', cleaned)
+    cleaned = re.sub(r'〈[^〉]*〉', ' ', cleaned)
+    cleaned = re.sub(r'《[^》]*》', ' ', cleaned)
+    
+    # 2. 楽天プロモーション記号・装飾文字の削除
+    cleaned = re.sub(r'[★☆◆◇■□▲▼◎○〇♪!！?？※★☆]+', ' ', cleaned)
+    
+    # 3. 楽天特有のプロモーション・SEOワードの削除
+    promo_words = [
+        r'送料無料', r'あす楽', r'即納', r'ランキング\s*\d*位', r'第?\d+冠',
+        r'クーポン(で|\s*利用で)?\d+%?OFF?', r'ポイント\s*\d+倍', r'P\d+倍',
+        r'スーパーSALE', r'お買い物マラソン', r'セール', r'限定', r'正規品',
+        r'公式', r'メーカー保証', r'ギフト', r'プレゼント', r'母の日', r'父の日',
+        r'敬老の日', r'お祝い', r'新生活', r'防災グッズ', r'PSE認証(済)?',
+        r'202[4-7]年?(最新|新型)?', r'最新(版|型)?', r'新型', r'超軽量', r'大容量'
+    ]
+    for pw in promo_words:
+        cleaned = re.sub(pw, ' ', cleaned, flags=re.IGNORECASE)
+
+    # 4. 区切り文字で分割し、意味のある先頭部分を採用
+    delimiters = [r'\s*\|\s*', r'\s*｜\s*', r'\s*／\s*', r'\s*/\s*', r'\s*－\s*', r'\s*:\s*', r'\s*：\s*']
     for delim in delimiters:
         parts = re.split(delim, cleaned)
-        if parts and len(parts[0].strip()) >= 5:
+        if parts and len(parts[0].strip()) >= 4:
             cleaned = parts[0]
             break
-            
-    # Clean up multiple spaces
+
+    # 5. 連続スペースを1つに統合
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
-    
-    if not cleaned:
-        cleaned = title[:35].strip()
+
+    # 6. スペース区切りで単語を抽出し、長すぎるSEOワードの連なりを短縮（最大26文字程度、最大4単語）
+    words = cleaned.split()
+    if words:
+        filtered_words = []
+        for i, w in enumerate(words):
+            # 不要な検索タグ・属性語・否定語のスキップ
+            if w in ["テレビ", "両耳", "片耳", "ではない", "用", "対応", "向け", "おすすめ", "人気", "補聴器ではない", "ランキング"]:
+                continue
+            # ひらがなのみの単語で、直前の単語の読み仮名と思われる場合はスキップ（例: 「集音器 しゅうおんき」）
+            if i > 0 and re.fullmatch(r'[ぁ-ん]+', w) and len(w) >= 3:
+                continue
+            filtered_words.append(w)
         
+        words_to_use = filtered_words if filtered_words else words
+        shortened = ""
+        count = 0
+        for w in words_to_use:
+            if not shortened:
+                shortened = w
+                count += 1
+            elif count < 4 and len(shortened) + len(w) + 1 <= 28:
+                shortened += " " + w
+                count += 1
+            else:
+                break
+        cleaned = shortened
+
+    # 7. 万一短すぎる場合のフォールバック
+    if len(cleaned) < 3:
+        # 元タイトルから記号を取り除いた先頭25文字
+        fallback = re.sub(r'[【】［］\[\]（）()★☆◆◇■□▲▼◎!！?？]', ' ', title)
+        fallback = re.sub(r'\s+', ' ', fallback).strip()
+        cleaned = fallback[:25].strip()
+
     return cleaned
 
 # 多様なガジェット・家電・PC・デスク環境・スマートホームカテゴリ（60種以上）

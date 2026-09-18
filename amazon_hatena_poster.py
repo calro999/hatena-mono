@@ -152,16 +152,18 @@ def main():
         img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{uploaded_image_url}" alt="{target_item["clean_title"]}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);"></div>'
         article_content = img_html + article_content
 
-    # Ensure Affiliate CTA button exists in the article
+    # Append single clean CTA Card at the end of the article
     if target_item.get("url"):
         cta_html = f"""
-        <div style="text-align: center; margin: 40px 0 20px 0;">
-            <a href="{target_item['url']}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #BF0000; color: #fff; padding: 16px 32px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(191,0,0,0.3); text-align: center;">
-                楽天市場で「{clean_title}」の詳細・クチコミを見る 🛒
-            </a>
-            <p style="font-size: 12px; color: #666; margin-top: 10px;">※現在の価格や在庫状況、実際のユーザー評価・ポイント還元は上記リンク先から確認できます。</p>
-        </div>
-        """
+<div style="margin: 40px 0 20px 0; padding: 24px 20px; background: #fafafa; border: 1px solid #eaeaea; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+    <p style="font-size: 13px; color: #888; margin: 0 0 8px 0; font-weight: bold;">＼ 楽天市場で詳細をチェック ／</p>
+    <div style="font-size: 17px; font-weight: bold; color: #333; margin-bottom: 16px; line-height: 1.4;">{clean_title}</div>
+    <a href="{target_item['url']}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #bf0000 0%, #d61a1a 100%); color: #ffffff; padding: 15px 36px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 12px rgba(191,0,0,0.25); text-align: center;">
+        楽天市場で価格・在庫を見る 🛒
+    </a>
+    <p style="font-size: 12px; color: #999; margin-top: 12px; margin-bottom: 0;">※最新の価格やポイント倍率、ユーザーレビューは上記リンク先からご確認いただけます。</p>
+</div>
+"""
         article_content += cta_html
 
     # Post Entry
