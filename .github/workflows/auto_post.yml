@@ -1,4 +1,4 @@
-name: Amazon Hatena Blog Auto Poster
+name: Rakuten Gadget Hatena Blog Auto Poster
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       search_keywords:
-        description: '検索キーワード（空欄ならタイムセール・売れ筋から自動選定）'
+        description: '検索キーワード（空欄ならランダムで最新・人気ガジェットを自動選定）'
         required: false
         default: ''
 
@@ -15,12 +15,14 @@ jobs:
   auto-post:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       models: read
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        persist-credentials: true
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -40,19 +42,17 @@ jobs:
 
     - name: Run Auto Poster
       env:
-        # Amazon Product Advertising API Credentials
-        AMAZON_ACCESS_KEY: ${{ secrets.AMAZON_ACCESS_KEY }}
-        AMAZON_SECRET_KEY: ${{ secrets.AMAZON_SECRET_KEY }}
-        AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
-        AMAZON_HOST: "webservices.amazon.co.jp"
-        AMAZON_REGION: "us-west-2"
+        # Rakuten API Credentials
+        RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+        RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+        RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
 
         # Hatena API Settings
         HATENA_ID: ${{ secrets.HATENA_ID }}
         HATENA_BLOG_ID: ${{ secrets.HATENA_BLOG_ID }}
         HATENA_API_KEY: ${{ secrets.HATENA_API_KEY }}
 
-        # 空欄 or 未指定 → amazon_hatena_poster.py が自動でタイムセール/売れ筋キーワードをローテーション
+        # Search Keywords
         SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || '' }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -61,3 +61,20 @@ jobs:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       run: |
         python amazon_hatena_poster.py
+
+    - name: Commit and push posted cache
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        if [ -f posted_cache.txt ]; then
+          git add posted_cache.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update posted cache [skip ci]"
+            git pull --rebase origin HEAD:${{ github.ref }} || git pull --rebase origin main || true
+            git push origin HEAD:${{ github.ref }} || git push origin main || true
+          else
+            echo "No changes in cache file."
+          fi
+        else
+          echo "Cache file not found."
+        fi

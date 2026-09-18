@@ -13,27 +13,34 @@ class ImageGenerator:
         pass
 
     def generate_eyecatch(self, prompt: str, output_path: str = "eyecatch.png", image_url: Optional[str] = None, category: Optional[str] = None) -> str:
-        from amazon_api import clean_product_title
+        from rakuten_api import clean_product_title
         clean_title = clean_product_title(prompt)
         
-        # 1. Select the best premium photo from Unsplash based on category/keywords
-        unsplash_url = self._select_unsplash_image_url(clean_title, category)
-        print(f"Selected base image URL: {unsplash_url}")
-        
-        # 2. Download the high-quality image as base background
+        # 1. Download real product image if available, else Unsplash premium photo
         bg_img = None
+        target_img_url = image_url if image_url and image_url.startswith("http") else None
+        if not target_img_url:
+            target_img_url = self._select_unsplash_image_url(clean_title, category)
+            
+        print(f"Selected base image URL: {target_img_url}")
         try:
-            print("Downloading premium background photo...")
+            print("Downloading base photo...")
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
             }
-            resp = requests.get(unsplash_url, headers=headers, timeout=20)
-            if resp.status_code == 200 and len(resp.content) > 5000:
+            resp = requests.get(target_img_url, headers=headers, timeout=20)
+            if resp.status_code == 200 and len(resp.content) > 1000:
                 bg_img = Image.open(io.BytesIO(resp.content)).convert("RGBA")
                 bg_img = bg_img.resize((800, 450), Image.Resampling.LANCZOS)
                 print("Successfully downloaded and resized base background image.")
             else:
-                print(f"Failed to download background image. Status: {resp.status_code}. Using gradient.")
+                print(f"Failed to download background image. Status: {resp.status_code}. Using fallback Unsplash.")
+                if target_img_url != self._select_unsplash_image_url(clean_title, category):
+                    fallback_url = self._select_unsplash_image_url(clean_title, category)
+                    fb_resp = requests.get(fallback_url, headers=headers, timeout=15)
+                    if fb_resp.status_code == 200:
+                        bg_img = Image.open(io.BytesIO(fb_resp.content)).convert("RGBA")
+                        bg_img = bg_img.resize((800, 450), Image.Resampling.LANCZOS)
         except Exception as e:
             print(f"Failed to fetch background photo: {e}. Using gradient.")
 
