@@ -220,8 +220,8 @@ class ImageGenerator:
             draw.text((x, y), line, fill=fill, font=font)
             y += line_height
 
-    def _generate_composite_image(self, clean_title: str, bg_img: Optional[Image.Image], output_path: str, size: Tuple[int, int] = (800, 450)) -> str:
-        print("Generating composite premium eyecatch with Unsplash background...")
+    def _generate_composite_image(self, clean_title: str, bg_img: Optional[Image.Image], output_path: str, size: Tuple[int, int] = (1200, 675)) -> str:
+        print("Generating composite high-resolution eyecatch...")
         width, height = size
         
         if bg_img:
@@ -231,16 +231,16 @@ class ImageGenerator:
             overlay = Image.new("RGBA", size, (0, 0, 0, 0))
             overlay_draw = ImageDraw.Draw(overlay)
             for x in range(width):
-                alpha = int(215 - (135 * (x / width)))
-                overlay_draw.line([(x, 0), (x, height)], fill=(12, 16, 26, alpha))
+                alpha = int(225 - (130 * (x / width)))
+                overlay_draw.line([(x, 0), (x, height)], fill=(10, 14, 24, alpha))
                 
             image = Image.alpha_composite(image, overlay)
             draw = ImageDraw.Draw(image)
         else:
             image = Image.new("RGBA", size)
             draw = ImageDraw.Draw(image)
-            color_start = (20, 24, 33)
-            color_end = (41, 55, 91)
+            color_start = (15, 20, 30)
+            color_end = (35, 48, 80)
             for y in range(height):
                 ratio = y / height
                 r = int(color_start[0] + (color_end[0] - color_start[0]) * ratio)
@@ -248,41 +248,41 @@ class ImageGenerator:
                 b = int(color_start[2] + (color_end[2] - color_start[2]) * ratio)
                 draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
 
-        card_margin = 25
+        card_margin = 35
         draw.rounded_rectangle(
             [card_margin, card_margin, width - card_margin, height - card_margin],
-            radius=20,
-            fill=(255, 255, 255, 5),
-            outline=(255, 255, 255, 20),
+            radius=24,
+            fill=(255, 255, 255, 6),
+            outline=(255, 255, 255, 25),
             width=2
         )
 
-        font_large = self._load_font(32)
-        font_medium = self._load_font(20)
-        font_small = self._load_font(12)
+        font_large = self._load_font(46)
+        font_medium = self._load_font(26)
+        font_small = self._load_font(16)
 
         # recommended badge
-        badge_x1, badge_y1 = 60, 60
-        badge_x2, badge_y2 = 195, 88
-        draw.rounded_rectangle([badge_x1, badge_y1, badge_x2, badge_y2], radius=6, fill="#FF9900")
-        draw.text((badge_x1 + 16, badge_y1 + 4), "RECOMMENDED", fill=(255, 255, 255, 255), font=font_small)
+        badge_x1, badge_y1 = 80, 80
+        badge_x2, badge_y2 = 270, 122
+        draw.rounded_rectangle([badge_x1, badge_y1, badge_x2, badge_y2], radius=8, fill="#BF0000")
+        draw.text((badge_x1 + 20, badge_y1 + 8), "RECOMMENDED", fill=(255, 255, 255, 255), font=font_small)
 
         # title
-        title_x, title_y = 60, 115
-        max_title_width = 460
+        title_x, title_y = 80, 155
+        max_title_width = 680
         self._draw_wrapped_text(draw, clean_title, (title_x, title_y), font_large, max_title_width, (255, 255, 255, 255))
 
         # subtitle
-        sub_text = "Latest Hot Selling Gadget Review & Specs"
-        draw.text((60, 265), sub_text, fill=(210, 215, 225, 200), font=font_medium)
+        sub_text = "Hot Selling Gadget Review & Real Experience"
+        draw.text((80, 390), sub_text, fill=(210, 220, 235, 210), font=font_medium)
 
-        # Amazon button
-        btn_x1, btn_y1 = 60, 325
-        btn_x2, btn_y2 = 295, 375
-        draw.rounded_rectangle([btn_x1, btn_y1, btn_x2, btn_y2], radius=25, fill="#FF9900")
-        draw.text((btn_x1 + 22, btn_y1 + 13), "Amazonで詳細を見る ➔", fill=(255, 255, 255, 255), font=font_medium)
+        # Rakuten button
+        btn_x1, btn_y1 = 80, 480
+        btn_x2, btn_y2 = 420, 555
+        draw.rounded_rectangle([btn_x1, btn_y1, btn_x2, btn_y2], radius=38, fill="#BF0000")
+        draw.text((btn_x1 + 32, btn_y1 + 20), "楽天市場で詳細を見る ➔", fill=(255, 255, 255, 255), font=font_medium)
 
         rgb_image = image.convert("RGB")
         rgb_image.save(output_path, "PNG")
-        print(f"Premium eyecatch saved successfully to: {output_path}")
+        print(f"High-resolution eyecatch saved successfully to: {output_path}")
         return output_path

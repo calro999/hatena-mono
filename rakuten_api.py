@@ -198,15 +198,24 @@ class RakutenAPI:
                     if not item_data:
                         continue
 
-                    # 商品画像URLの取得
+                    # 商品画像URLの取得（700x700の高解像度版に変換）
                     image_url = ""
                     medium_images = item_data.get("mediumImageUrls", [])
                     if medium_images and isinstance(medium_images, list) and len(medium_images) > 0:
-                        image_url = medium_images[0].get("imageUrl", "") if isinstance(medium_images[0], dict) else str(medium_images[0])
+                        raw_img = medium_images[0].get("imageUrl", "") if isinstance(medium_images[0], dict) else str(medium_images[0])
+                        # 楽天サムネイルクエリを高解像度700x700に変換
+                        if "_ex=" in raw_img:
+                            image_url = re.sub(r'_ex=\d+x\d+', '_ex=700x700', raw_img)
+                        else:
+                            image_url = raw_img
                     elif item_data.get("smallImageUrls"):
                         small_images = item_data.get("smallImageUrls", [])
                         if small_images and isinstance(small_images, list) and len(small_images) > 0:
-                            image_url = small_images[0].get("imageUrl", "") if isinstance(small_images[0], dict) else str(small_images[0])
+                            raw_img = small_images[0].get("imageUrl", "") if isinstance(small_images[0], dict) else str(small_images[0])
+                            if "_ex=" in raw_img:
+                                image_url = re.sub(r'_ex=\d+x\d+', '_ex=700x700', raw_img)
+                            else:
+                                image_url = raw_img
 
                     item_name = item_data.get("itemName", "")
                     clean_name = clean_product_title(item_name)

@@ -139,7 +139,7 @@ def main():
     article_content = article_gen.generate_review_article(target_item)
     
     clean_title = target_item.get("clean_title") or target_item["title"]
-    title = f"【徹底レビュー】本当に買い？「{clean_title}」の実力を徹底検証！"
+    title = f"【本音レビュー】「{clean_title}」は本当に買い？実際に使ってわかったメリット・デメリットを徹底検証！"
 
     # Determine image to insert
     uploaded_image_url = hatena_client.upload_image_to_fotolife(eyecatch_path)
@@ -147,24 +147,50 @@ def main():
         print("Fotolife upload skipped/failed. Using product image URL directly.")
         uploaded_image_url = target_item.get('image_url') or img_gen._select_unsplash_image_url(clean_title, target_item.get('category'))
 
-    # Insert image to the beginning of the article
+    # 1. 大迫力の高解像度商品画像（クリックで楽天市場へ直接遷移）
+    affiliate_link = target_item.get("url", "")
     if uploaded_image_url:
-        img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{uploaded_image_url}" alt="{target_item["clean_title"]}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);"></div>'
+        img_html = f'''
+<div style="text-align: center; margin: 25px 0 15px 0;">
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
+        <img src="{uploaded_image_url}" alt="{clean_title}" style="width: 100%; max-width: 680px; height: auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: block; margin: 0 auto; transition: transform 0.2s ease;">
+    </a>
+    <p style="font-size: 11px; color: #999; margin-top: 8px;">（※画像クリックで楽天市場の商品ページへ移動できます）</p>
+</div>
+'''
         article_content = img_html + article_content
 
-    # Append single clean CTA Card at the end of the article
-    if target_item.get("url"):
-        cta_html = f"""
-<div style="margin: 40px 0 20px 0; padding: 24px 20px; background: #fafafa; border: 1px solid #eaeaea; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-    <p style="font-size: 13px; color: #888; margin: 0 0 8px 0; font-weight: bold;">＼ 楽天市場で詳細をチェック ／</p>
-    <div style="font-size: 17px; font-weight: bold; color: #333; margin-bottom: 16px; line-height: 1.4;">{clean_title}</div>
-    <a href="{target_item['url']}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #bf0000 0%, #d61a1a 100%); color: #ffffff; padding: 15px 36px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 12px rgba(191,0,0,0.25); text-align: center;">
-        楽天市場で価格・在庫を見る 🛒
+    # 2. 前半の早期アクセス・クリック用ファーストCTA（ファーストビュー直下）
+    if affiliate_link:
+        early_cta_html = f'''
+<div style="margin: 20px 0 35px 0; padding: 16px 20px; background: #fff8f8; border: 1px solid #ffd8d8; border-radius: 12px; text-align: center;">
+    <p style="font-size: 13px; color: #bf0000; font-weight: bold; margin: 0 0 10px 0;">＼ セール情報・リアルタイム最安値をチェック ／</p>
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #bf0000 0%, #e60000 100%); color: #ffffff; padding: 13px 28px; font-size: 15px; font-weight: bold; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(191,0,0,0.25);">
+        楽天市場で「{clean_title}」の価格・在庫を見る 🛒
     </a>
-    <p style="font-size: 12px; color: #999; margin-top: 12px; margin-bottom: 0;">※最新の価格やポイント倍率、ユーザーレビューは上記リンク先からご確認いただけます。</p>
 </div>
-"""
-        article_content += cta_html
+'''
+        # 最初の<h2>の直後に挿入、なければ冒頭画像の後に追加
+        if "</h2>" in article_content:
+            parts = article_content.split("</h2>", 1)
+            article_content = parts[0] + "</h2>\n" + early_cta_html + parts[1]
+        else:
+            article_content = article_content + "\n" + early_cta_html
+
+    # 3. 記事末尾の決定打・大型商品紹介カード（クロージングCTA）
+    if affiliate_link:
+        closing_cta_html = f'''
+<div style="margin: 45px 0 25px 0; padding: 26px 22px; background: #fdfbfb; border: 2px solid #f0e6e6; border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.04);">
+    <span style="display: inline-block; background: #bf0000; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;">楽天市場 公式ショップ・優良店</span>
+    <div style="font-size: 18px; font-weight: bold; color: #222; margin-bottom: 8px; line-height: 1.4;">{clean_title}</div>
+    <div style="font-size: 20px; font-weight: bold; color: #bf0000; margin-bottom: 18px;">{target_item.get('price', '')}</div>
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #bf0000 0%, #d61a1a 100%); color: #ffffff; padding: 16px 38px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px rgba(191,0,0,0.3); text-align: center;">
+        楽天市場で詳細・ユーザー口コミを見る 🛒
+    </a>
+    <p style="font-size: 12px; color: #888; margin-top: 14px; margin-bottom: 0;">※現在のセール状況、お買い物マラソン等のポイント倍率や即日配送状況は上記リンク先からご確認いただけます。</p>
+</div>
+'''
+        article_content += closing_cta_html
 
     # Post Entry
     success = hatena_client.post_entry(
