@@ -28,3 +28,4 @@ dasimon:10000055
 goodlifestore:10628430
 toyonichi-1:10052159
 sinuchihonpo:10049553
+freedoms-zakka:10001407
