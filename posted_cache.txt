@@ -26,3 +26,4 @@ lilishop6-store:11006367
 lilishop6-store:10944915
 dasimon:10000055
 goodlifestore:10628430
+toyonichi-1:10052159
