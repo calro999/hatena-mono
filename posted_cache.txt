@@ -43,3 +43,4 @@ nekosansyouten:10025363
 shinetourmarket:10000308
 portable-eco:10000270
 e-zoa:10110436
+eleking:10048640
