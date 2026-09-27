@@ -58,3 +58,4 @@ chack0605:10020946
 kokolohas-style:10055915
 zozohonpo:10000188
 forjoyhome:10000304
+auc-taketomo-kobo:10000075
