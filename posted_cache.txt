@@ -65,3 +65,4 @@ seakers:10000199
 izonejapan:10001087
 diomart:10129767
 springtech:10000013
+mottole-shop:10000179
