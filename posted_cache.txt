@@ -71,3 +71,4 @@ switchbot:10000273
 jttonline:10002905
 otskr:10000223
 hc999:11770485
+omichi-store:10560171
