@@ -68,3 +68,4 @@ springtech:10000013
 mottole-shop:10000179
 putera:10423439
 switchbot:10000273
+jttonline:10002905
