@@ -91,3 +91,4 @@ showcase:10002478
 sugarlight:10163647
 kina1004:10053362
 kimuraya:10328542
+efgshop:10000014
