@@ -98,3 +98,4 @@ uauu:10002376
 lifehouse:10000098
 gekiyasu-ink:10044376
 tsurunooshiro:10000709
+amo-sastore:10000376
