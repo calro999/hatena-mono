@@ -101,3 +101,4 @@ tsurunooshiro:10000709
 amo-sastore:10000376
 sugurushopno2:10000201
 nextmart:10411746
+starlighting:10000725
