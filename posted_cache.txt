@@ -102,3 +102,4 @@ amo-sastore:10000376
 sugurushopno2:10000201
 nextmart:10411746
 starlighting:10000725
+abc-tuhan:10017391
