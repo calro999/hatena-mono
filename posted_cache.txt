@@ -110,3 +110,4 @@ ess-lifestyle:10014135
 inskagu:10025088
 shopaz:10199774
 okuta:10000012
+smartzone:10000198
