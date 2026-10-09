@@ -112,3 +112,4 @@ shopaz:10199774
 okuta:10000012
 smartzone:10000198
 wakuwakugensenmarket:10000186
+cepinc:10001859
