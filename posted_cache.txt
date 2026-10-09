@@ -114,3 +114,4 @@ smartzone:10000198
 wakuwakugensenmarket:10000186
 cepinc:10001859
 asahisyoujistore:10011022
+sakawakokuban:10000008
