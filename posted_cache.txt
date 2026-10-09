@@ -116,3 +116,4 @@ cepinc:10001859
 asahisyoujistore:10011022
 sakawakokuban:10000008
 sunday-morning:10070487
+roborockjapandirect:10000139
