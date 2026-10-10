@@ -124,3 +124,4 @@ starq-online-tjc:10000462
 d-evo:10000063
 aobax:10000502
 himawari-runrun:10000260
+manetstore:10003767
