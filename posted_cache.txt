@@ -156,3 +156,4 @@ gekiyasu-ink:10029903
 at-zakka:10042672
 mabashistore:10375806
 shattakomachi:10091200
+mediken:10000038
