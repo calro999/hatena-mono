@@ -152,3 +152,4 @@ devicecollect:10051809
 megumishop:10000362
 devicecollect:10052358
 sanwadirect:10094545
+gekiyasu-ink:10029903
