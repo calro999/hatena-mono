@@ -158,3 +158,4 @@ mabashistore:10375806
 shattakomachi:10091200
 mediken:10000038
 mahana-online:10085195
+akasotech:10000685
