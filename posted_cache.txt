@@ -154,3 +154,4 @@ devicecollect:10052358
 sanwadirect:10094545
 gekiyasu-ink:10029903
 at-zakka:10042672
+mabashistore:10375806
