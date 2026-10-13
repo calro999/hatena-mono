@@ -164,3 +164,4 @@ astershop:10658506
 pasodentsushin:10769797
 ryohinseikatsukan:10000103
 shopworld:10137860
+fanxiang-official:10000002
