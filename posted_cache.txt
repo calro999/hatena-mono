@@ -190,3 +190,4 @@ enbliss:10000032
 joisafakey:10000038
 tomicoco:10001155
 manmaru-fresta:10047236
+ezone:10002188
