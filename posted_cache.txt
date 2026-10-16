@@ -207,3 +207,4 @@ omichi-store:10183619
 jttonline:10002886
 lifecare-s:10008759
 tabistyle:10002098
+xili01shop:10000312
