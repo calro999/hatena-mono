@@ -199,3 +199,4 @@ qucover:10000536
 zzyy:10001422
 sanwadirect:10100228
 gourmandise:10012668
+your-sales-shop:10120982
