@@ -226,3 +226,4 @@ jmei:10050605
 ciel-sora:10207439
 smahoservice:10004133
 nicetrade:10000210
+nicetrade:10000384
