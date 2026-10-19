@@ -246,3 +246,4 @@ anker:10002482
 ajimura4861:13201184
 sasaki-takashi:10005189
 putera:10270878
+jyx-store:10000141
