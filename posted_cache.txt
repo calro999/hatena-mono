@@ -249,3 +249,4 @@ putera:10270878
 jyx-store:10000141
 a-price:11290559
 monotoki:10001683
+kaishinstore:10000343
