@@ -253,3 +253,4 @@ kaishinstore:10000343
 bandc:10203329
 a-price:11404267
 gravity-2024:10036587
+bungen-shop:10000908
