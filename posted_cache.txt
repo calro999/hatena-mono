@@ -264,3 +264,4 @@ omichi-store:10476438
 p-select:10110531
 probasto:10000230
 enetroom:10056249
+yamada-denki:10548770
