@@ -287,3 +287,4 @@ pda:10272765
 cotomono-shop:10001722
 n-susume:10002713
 ulmaxjapan2:10714705
+nishoshoten:10001918
