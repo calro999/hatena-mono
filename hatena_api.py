@@ -106,8 +106,11 @@ class HatenaAPI:
             print(f"Failed to upload image to Hatena Fotolife: {e}")
             return None
 
-    def post_entry(self, title: str, html_content: str, is_draft: bool = False) -> bool:
-        """Posts an entry to Hatena Blog using AtomPub API."""
+    def post_entry(self, title: str, html_content: str, is_draft: bool = False) -> Optional[str]:
+        """
+        Posts an entry to Hatena Blog using AtomPub API.
+        Returns the published entry URL (str) if successful, or None if failed.
+        """
         if not self.hatena_id or not self.blog_id or not self.api_key or self.hatena_id.startswith("DUMMY"):
             print("Hatena API: Credentials not set or dummy mode. Skipping post.")
             print(f"--- DUMMY API POST ---")
@@ -115,7 +118,7 @@ class HatenaAPI:
             print(f"Title: {title}")
             print(f"Content:\n{html_content[:500]}...")
             print(f"----------------------")
-            return True
+            return f"https://{self.blog_id or 'example.hatenablog.com'}/entry/preview-mode"
 
         draft_val = "yes" if is_draft else "no"
         url = f"https://blog.hatena.ne.jp/{self.hatena_id}/{self.blog_id}/atom/entry"
@@ -148,13 +151,28 @@ class HatenaAPI:
             with urllib.request.urlopen(req) as response:
                 if response.status in (201, 200):
                     print("Entry posted successfully via AtomPub API!")
-                    return True
+                    res_body = response.read()
+                    entry_url = None
+                    try:
+                        root = ET.fromstring(res_body)
+                        ns_atom = "{http://www.w3.org/2005/Atom}"
+                        for link_el in root.findall(f"{ns_atom}link"):
+                            if link_el.get("rel") == "alternate":
+                                entry_url = link_el.get("href")
+                                break
+                    except Exception as parse_e:
+                        print(f"Warning: Could not parse response XML for alternate link: {parse_e}")
+
+                    if not entry_url:
+                        entry_url = f"https://{self.blog_id}/"
+                    print(f"Published Blog Entry URL: {entry_url}")
+                    return entry_url
                 else:
                     print(f"Failed to post. Status code: {response.status}")
-                    return False
+                    return None
         except Exception as e:
             print(f"Failed to post entry to Hatena Blog: {e}")
-            return False
+            return None
 
     def get_recent_titles(self) -> List[str]:
         """Fetches the titles of recent blog posts from Hatena Blog."""

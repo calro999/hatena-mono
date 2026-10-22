@@ -12,6 +12,7 @@ from rakuten_api import RakutenAPI, clean_product_title
 from article_generator import ArticleGenerator
 from image_generator import ImageGenerator
 from hatena_api import HatenaAPI
+from bluesky_api import BlueskyAPI
 
 CACHE_FILE = "posted_cache.txt"
 
@@ -193,18 +194,33 @@ def main():
         article_content += closing_cta_html
 
     # Post Entry
-    success = hatena_client.post_entry(
+    published_entry_url = hatena_client.post_entry(
         title=title,
         html_content=article_content,
         is_draft=False
     )
     
-    if success:
+    if published_entry_url:
         # Save to cache only when posting succeeds
         item_code = target_item.get("itemCode", "")
         if item_code:
             save_posted_cache(item_code)
             print(f"Saved {item_code} to {CACHE_FILE}")
+
+        # Post to Bluesky
+        try:
+            print("Preparing to post to Bluesky (@mikke-hobby.bsky.social)...")
+            bsky = BlueskyAPI()
+            bsky_text = bsky.generate_post_text(
+                item=target_item,
+                blog_url=published_entry_url,
+                genre="gadget"
+            )
+            print(f"Generated Bluesky Post Text:\n---\n{bsky_text}\n---")
+            bsky.post(bsky_text)
+        except Exception as bsky_e:
+            print(f"Warning: Failed to post to Bluesky: {bsky_e}")
+
         print("=== Auto Post Process Completed Successfully! ===")
     else:
         print("=== Auto Post Process Failed at Posting Stage. ===")

@@ -52,6 +52,10 @@ jobs:
         HATENA_BLOG_ID: ${{ secrets.HATENA_BLOG_ID }}
         HATENA_API_KEY: ${{ secrets.HATENA_API_KEY }}
 
+        # Bluesky Settings
+        BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE || 'mikke-hobby.bsky.social' }}
+        BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+
         # Search Keywords
         SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || '' }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
