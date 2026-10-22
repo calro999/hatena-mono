@@ -281,3 +281,4 @@ hakkutsu-market:10001446
 asialoop:10055774
 motteru:10000027
 lovleopstore:10000020
+aftershokz-official:10000056
