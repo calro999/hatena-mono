@@ -289,3 +289,4 @@ n-susume:10002713
 ulmaxjapan2:10714705
 nishoshoten:10001918
 rikyu-pudding0601:10108824
+shoessquare-00:10007455
