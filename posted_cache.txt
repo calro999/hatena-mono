@@ -300,3 +300,4 @@ um-chair:10002116
 murauchi-denki:148541910
 sanwadirect:10100211
 onesmart:10080810
+comset:10006076
