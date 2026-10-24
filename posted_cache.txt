@@ -313,3 +313,4 @@ orlando:10000091
 ess-lifestyle:10017132
 sk-shops2024:10000196
 skylight:10470519
+ulmaxjapan2:11082794
