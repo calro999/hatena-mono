@@ -317,3 +317,4 @@ ulmaxjapan2:11082794
 jic-shop:10000309
 e-zoa:10067967
 jmei:10041098
+yskikaku:10000431
