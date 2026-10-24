@@ -307,3 +307,4 @@ cocohouse:10816928
 itsumowoshiawaseni:10000007
 upup-store:10004275
 higashishoten:10000735
+putera:10117801
