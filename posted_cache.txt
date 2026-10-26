@@ -340,3 +340,4 @@ onlineshop-a-style:10002407
 happystorefujioka:10574790
 forest369:10062908
 logicool:10000681
+lifecorner:10002155
