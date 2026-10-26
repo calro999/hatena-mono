@@ -339,3 +339,4 @@ emuland-store:10750488
 onlineshop-a-style:10002407
 happystorefujioka:10574790
 forest369:10062908
+logicool:10000681
