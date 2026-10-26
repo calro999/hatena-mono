@@ -337,3 +337,4 @@ dotkae-ru02:10233826
 hanwha:10000700
 emuland-store:10750488
 onlineshop-a-style:10002407
+happystorefujioka:10574790
