@@ -343,3 +343,4 @@ logicool:10000681
 lifecorner:10002155
 novaflux:10000491
 ansinnoyosi:10040014
+cc01shop:10001121
