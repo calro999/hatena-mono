@@ -354,3 +354,4 @@ global-laboratory:10066749
 sokutei:10186720
 shotr-:10000033
 iikakakustore:10001223
+superyou:10493129
