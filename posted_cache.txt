@@ -357,3 +357,4 @@ iikakakustore:10001223
 superyou:10493129
 astershop:10258250
 saisonlife:10012034
+sugurushopno2:10000263
