@@ -359,3 +359,4 @@ astershop:10258250
 saisonlife:10012034
 sugurushopno2:10000263
 papimomoshop:10029649
+lovelonestar:10043812
