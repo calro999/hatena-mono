@@ -371,3 +371,4 @@ vlookupstore:10726450
 irisplaza-r:10135593
 yotsubasyouten:10068620
 book:20690180
+lovelonestar:10043780
