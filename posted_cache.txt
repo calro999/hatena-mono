@@ -364,3 +364,4 @@ lovleopstore:10000026
 mix-shop:10001276
 88so-kai:10001178
 welltown:10002973
+livelylife:10003244
