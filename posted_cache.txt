@@ -367,3 +367,4 @@ welltown:10002973
 livelylife:10003244
 2doriem:10094634
 iikakaku-officialstore:10006260
+vlookupstore:10726450
