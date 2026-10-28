@@ -373,3 +373,4 @@ yotsubasyouten:10068620
 book:20690180
 lovelonestar:10043780
 funlifestore:10007991
+kagustyle:10039484
