@@ -376,3 +376,4 @@ funlifestore:10007991
 kagustyle:10039484
 grams-shop:11989888
 narukiya:10009511
+vaps2shop:10017377
