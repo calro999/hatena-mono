@@ -378,3 +378,4 @@ grams-shop:11989888
 narukiya:10009511
 vaps2shop:10017377
 moccasin:10356169
+lapistores:10028634
