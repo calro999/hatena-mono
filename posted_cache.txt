@@ -397,3 +397,4 @@ triangle777:10031151
 anniestore:10321631
 topland1971:10000078
 ueno-mono:10000006
+emuland-store:10740296
