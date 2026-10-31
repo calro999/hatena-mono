@@ -407,3 +407,4 @@ e-zoa-klaxon:10039257
 edisonsmart:10000147
 e-earphone:10040385
 maono:10000029
+ryohinseikatsukan:10000131
