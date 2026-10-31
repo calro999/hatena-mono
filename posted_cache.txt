@@ -400,3 +400,4 @@ ueno-mono:10000006
 emuland-store:10740296
 miyarabi10513:10070071
 edion:10896122
+gigastone:10000201
