@@ -404,3 +404,4 @@ gigastone:10000201
 matsucame:10072240
 tplinkdirect:10001352
 e-zoa-klaxon:10039257
+edisonsmart:10000147
