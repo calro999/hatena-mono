@@ -422,3 +422,4 @@ jacc2:10011507
 and-see:10001022
 koukitorin:10003605
 akindo:10204207
+astershop:10241602
