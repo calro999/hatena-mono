@@ -411,3 +411,4 @@ ryohinseikatsukan:10000131
 nature-remo:10000027
 smart-factory:10014325
 obuone:10000030
+goodgoodsyn2:10002532
