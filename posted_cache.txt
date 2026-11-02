@@ -431,3 +431,4 @@ friendshill-store:10001043
 plywood:10002234
 vision-stores:10382401
 mix-shop:10001119
+gmy-japan:10000099
