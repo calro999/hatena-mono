@@ -457,3 +457,4 @@ icemart:10001671
 emuland-store:10273482
 aftershokz-official:10000018
 sanwadirect:10108393
+kobe-s:10091112
