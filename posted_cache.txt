@@ -452,3 +452,4 @@ fifine-shop:10000008
 vaps:10200880
 credit:10005178
 irobotstore:10000566
+everfreeshop:10000030
