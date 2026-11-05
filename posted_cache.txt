@@ -462,3 +462,4 @@ kuramochishop:10001200
 sinuchihonpo:10025172
 sofapotato:11223606
 qifeng:10000004
+ideazakkaten:10000089
