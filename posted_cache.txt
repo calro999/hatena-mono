@@ -466,3 +466,4 @@ ideazakkaten:10000089
 yokohama-toner:10010494
 sanwadirect:10100210
 km-select:10064372
+huawei-official:10000127
