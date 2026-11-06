@@ -474,3 +474,4 @@ astershop:10512815
 yakia:10001563
 everything-mart:10039004
 akashiashop:10000391
+hecmarket:10000238
