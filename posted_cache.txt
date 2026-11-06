@@ -470,3 +470,4 @@ huawei-official:10000127
 dmastore:10001213
 career-up:10003477
 hasacool:10000791
+astershop:10512815
