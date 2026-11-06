@@ -477,3 +477,4 @@ akashiashop:10000391
 hecmarket:10000238
 kkdirect:10070344
 diw-shop:10000180
+dresma:11286220
