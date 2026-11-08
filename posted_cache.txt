@@ -500,3 +500,4 @@ grams-shop:11994138
 vision-stores:10567621
 fortuness:10085596
 astalio:10036553
+lacurazur:10000277
