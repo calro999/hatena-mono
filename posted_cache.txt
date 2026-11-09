@@ -510,3 +510,4 @@ mkslpulp:10200729
 bruno-official:10002140
 egret:10000016
 biso-jin:10002349
+jikuya-store:10002864
