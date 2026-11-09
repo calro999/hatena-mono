@@ -132,21 +132,15 @@ def main():
         category=target_item.get('category')
     )
 
-    # 4. Generate Review Article
+    # 4. Generate Review Article & Title & Description using LLM
     print("Initializing LLM Article Generator...")
     article_gen = ArticleGenerator()
     article_gen.load_model()
     
-    article_content = article_gen.generate_review_article(target_item)
-    
     clean_title = target_item.get("clean_title") or target_item["title"]
-    title_hooks = [
-        f"【本音レビュー】「{clean_title}」は本当に買い？実際に使ってわかったメリット・デメリットを徹底検証！",
-        f"【正直レビュー】「{clean_title}」を買って激変した毎日！リアルな使い心地とおすすめ理由まとめ",
-        f"【買う前に必読】「{clean_title}」の使い勝手・注意点を本音で暴露！後悔しないための徹底ガイド",
-        f"【愛用者激白】「{clean_title}」が想像以上に良かった！日々のストレスが消えた理由"
-    ]
-    title = random.choice(title_hooks)
+    gen_title, desc_html, body_html = article_gen.generate_review_article(target_item)
+    title = gen_title
+    print(f"Generated Article Title: {title}")
 
     # Determine image to insert
     uploaded_image_url = hatena_client.upload_image_to_fotolife(eyecatch_path)
@@ -154,20 +148,22 @@ def main():
         print("Fotolife upload skipped/failed. Using product image URL directly.")
         uploaded_image_url = target_item.get('image_url') or img_gen._select_unsplash_image_url(clean_title, target_item.get('category'))
 
-    # 1. 大迫力の高解像度商品画像（クリックで楽天市場へ直接遷移）
     affiliate_link = target_item.get("url", "")
+
+    # 大迫力の高解像度商品画像（クリックで楽天市場へ直接遷移）
+    img_html = ""
     if uploaded_image_url:
         img_html = f'''
-<div style="text-align: center; margin: 25px 0 15px 0;">
+<div style="text-align: center; margin: 25px 0 20px 0;">
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
         <img src="{uploaded_image_url}" alt="{clean_title}" style="width: 100%; max-width: 680px; height: auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: block; margin: 0 auto; transition: transform 0.2s ease;">
     </a>
     <p style="font-size: 11px; color: #999; margin-top: 8px;">（※画像クリックで楽天市場の商品ページへ移動できます）</p>
 </div>
 '''
-        article_content = img_html + article_content
 
-    # 2. 前半の早期アクセス・クリック用ファーストCTA（ファーストビュー直下）
+    # 前半の早期アクセス・クリック用ファーストCTA（ファーストビュー直下）
+    early_cta_html = ""
     if affiliate_link:
         early_cta_html = f'''
 <div style="margin: 20px 0 35px 0; padding: 16px 20px; background: #fff8f8; border: 1px solid #ffd8d8; border-radius: 12px; text-align: center;">
@@ -177,14 +173,9 @@ def main():
     </a>
 </div>
 '''
-        # 最初の<h2>の直後に挿入、なければ冒頭画像の後に追加
-        if "</h2>" in article_content:
-            parts = article_content.split("</h2>", 1)
-            article_content = parts[0] + "</h2>\n" + early_cta_html + parts[1]
-        else:
-            article_content = article_content + "\n" + early_cta_html
 
-    # 3. 記事末尾の決定打・大型商品紹介カード（クロージングCTA）
+    # 記事末尾の決定打・大型商品紹介カード（クロージングCTA）
+    closing_cta_html = ""
     if affiliate_link:
         closing_cta_html = f'''
 <div style="margin: 45px 0 25px 0; padding: 26px 22px; background: #fdfbfb; border: 2px solid #f0e6e6; border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.04);">
@@ -197,7 +188,10 @@ def main():
     <p style="font-size: 12px; color: #888; margin-top: 14px; margin-bottom: 0;">※現在のセール状況、お買い物マラソン等のポイント倍率や即日配送状況は上記リンク先からご確認いただけます。</p>
 </div>
 '''
-        article_content += closing_cta_html
+
+    # 【最重要】記事冒頭（ディスクリプション部分）には純粋な魅力文（desc_html）のみを配置！
+    # 検索エンジン・ブログ一覧の抜粋に画像クレジットやボタンのテキストが混入するのを完全防止
+    article_content = f"{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{closing_cta_html}"
 
     # Post Entry
     published_entry_url = hatena_client.post_entry(
