@@ -512,3 +512,4 @@ egret:10000016
 biso-jin:10002349
 jikuya-store:10002864
 kinakosyouten:10012255
+suika-the2nd:10003793
