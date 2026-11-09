@@ -513,3 +513,4 @@ biso-jin:10002349
 jikuya-store:10002864
 kinakosyouten:10012255
 suika-the2nd:10003793
+f042081-kakuda:10002547
