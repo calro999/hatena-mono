@@ -1,13 +1,19 @@
-name: Rakuten Gadget Hatena Blog Auto Poster
+name: Hatena Blog Auto Poster (Rakuten & Yahoo Hybrid)
 
 on:
   schedule:
-    # 30分おき (毎時3分、33分) に実行 (GitHub Actions混雑回避のためオフセット設定)
-    - cron: '3,33 * * * *'
+    # 1日26記事投稿 (約55分間隔: 毎時5分、および特定時間に35分を追加して24hで計26回)
+    # 偶数回/奇数回で楽天13記事 + Yahoo 13記事を交互ローテーション
+    - cron: '5 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 * * *'
+    - cron: '35 6,18 * * *'
   workflow_dispatch:
     inputs:
       search_keywords:
-        description: '検索キーワード（空欄ならランダムで最新・人気ガジェットを自動選定）'
+        description: '検索キーワード（空欄ならランダム自動選定）'
+        required: false
+        default: ''
+      post_platform:
+        description: '投稿プラットフォーム（空欄なら自動交互ローテーション、rakuten または yahoo）'
         required: false
         default: ''
 
@@ -47,6 +53,11 @@ jobs:
         RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
         RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
 
+        # Yahoo API Credentials
+        YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+        YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+        YAHOO_AFFILIATE_ID: ${{ secrets.YAHOO_AFFILIATE_ID }}
+
         # Hatena API Settings
         HATENA_ID: ${{ secrets.HATENA_ID }}
         HATENA_BLOG_ID: ${{ secrets.HATENA_BLOG_ID }}
@@ -56,8 +67,9 @@ jobs:
         BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE || 'mikke-hobby.bsky.social' }}
         BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
 
-        # Search Keywords
+        # Search Keywords & Platform selection
         SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || '' }}
+        POST_PLATFORM: ${{ github.event.inputs.post_platform || '' }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -66,19 +78,15 @@ jobs:
       run: |
         python amazon_hatena_poster.py
 
-    - name: Commit and push posted cache
+    - name: Commit and push posted cache and mode state
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        if [ -f posted_cache.txt ]; then
-          git add posted_cache.txt
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update posted cache [skip ci]"
-            git pull --rebase origin HEAD:${{ github.ref }} || git pull --rebase origin main || true
-            git push origin HEAD:${{ github.ref }} || git push origin main || true
-          else
-            echo "No changes in cache file."
-          fi
+        git add posted_cache.txt post_mode.txt || true
+        if ! git diff --cached --quiet; then
+          git commit -m "chore: update posted cache & mode [skip ci]"
+          git pull --rebase origin HEAD:${{ github.ref }} || git pull --rebase origin main || true
+          git push origin HEAD:${{ github.ref }} || git push origin main || true
         else
-          echo "Cache file not found."
+          echo "No changes in cache or mode."
         fi

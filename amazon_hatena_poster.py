@@ -8,7 +8,9 @@ if os.path.exists(".env"):
 import sys
 import random
 from typing import Set
-from rakuten_api import RakutenAPI, clean_product_title
+from rakuten_api import RakutenAPI
+from yahoo_api import YahooShoppingAPI
+from toggle_mode import get_next_platform, save_current_platform
 from article_generator import ArticleGenerator
 from image_generator import ImageGenerator
 from hatena_api import HatenaAPI
@@ -31,13 +33,17 @@ def save_posted_cache(item_code: str):
         f.write(f"{item_code}\n")
 
 def main():
-    print("=== Starting Rakuten Gadget Hatena Blog Auto Poster ===")
+    print("=== Starting Gadget Hatena Blog Auto Poster (Rakuten & Yahoo Hybrid) ===")
     
     # 1. Load Configurations from environment variables
     # Rakuten API settings
     rakuten_app_id = os.environ.get("RAKUTEN_APP_ID", "")
     rakuten_access_key = os.environ.get("RAKUTEN_ACCESS_KEY", "")
     rakuten_affiliate_id = os.environ.get("RAKUTEN_AFFILIATE_ID", "")
+
+    # Yahoo API settings
+    yahoo_client_id = os.environ.get("YAHOO_CLIENT_ID", "")
+    yahoo_affiliate_id = os.environ.get("YAHOO_AFFILIATE_ID", "")
     
     # Hatena API Settings
     hatena_id = os.environ.get("HATENA_ID", "")
@@ -46,6 +52,11 @@ def main():
 
     # Content Settings
     search_keywords = os.environ.get("SEARCH_KEYWORDS", "").strip()
+    forced_platform = os.environ.get("POST_PLATFORM", "").strip().lower()
+
+    # Determine platform: 13 Rakuten + 13 Yahoo = 26 posts / day
+    platform = get_next_platform(forced_platform)
+    print(f"Selected Platform for this run: {platform.upper()}")
 
     # Load posted cache
     posted_cache = load_posted_cache()
@@ -54,9 +65,6 @@ def main():
     # Check Hatena API configuration
     if not api_key:
         print("Warning: HATENA_API_KEY is not set. Running in DRY-RUN/DEMO mode.")
-        dry_run = True
-    else:
-        dry_run = False
 
     # Initialize Hatena API Client first to check recent entries for duplication
     print("Initializing Hatena API Client...")
@@ -69,56 +77,66 @@ def main():
     recent_titles = hatena_client.get_recent_titles()
     recent_titles_str = " ".join(recent_titles).lower()
 
-    # 2. Fetch Items from Rakuten API with Retry for New Items
-    rakuten_client = RakutenAPI(
-        app_id=rakuten_app_id,
-        access_key=rakuten_access_key,
-        affiliate_id=rakuten_affiliate_id
-    )
-
+    # 2. Fetch Items from Selected Platform
     target_item = None
     max_retries = 10
-    
-    for attempt in range(max_retries):
-        if search_keywords and attempt == 0:
-            current_keyword = search_keywords
-        else:
-            current_keyword = rakuten_client.generate_random_keyword()
-            
-        print(f"--- Attempt {attempt + 1}/{max_retries} (Keyword: '{current_keyword}') ---")
-        items = rakuten_client.search_items(keyword=current_keyword, hits=30)
-        
-        if not items:
-            print(f"No items found for keyword '{current_keyword}'. Trying next keyword...")
-            continue
 
-        # Shuffle items to avoid always picking the first item from top rankings
-        random.shuffle(items)
-
-        for item in items:
-            item_code = item.get("itemCode", "")
-            clean_name = item.get("clean_title", "").lower()
-            
-            # Check against local cache
-            if item_code and item_code in posted_cache:
+    if platform == "yahoo" and yahoo_client_id:
+        print("--- Fetching items from Yahoo! Shopping API ---")
+        yahoo_client = YahooShoppingAPI(client_id=yahoo_client_id, affiliate_id=yahoo_affiliate_id)
+        for attempt in range(max_retries):
+            current_keyword = search_keywords if (search_keywords and attempt == 0) else yahoo_client.generate_random_keyword()
+            print(f"--- Attempt {attempt + 1}/{max_retries} (Yahoo Keyword: '{current_keyword}') ---")
+            items = yahoo_client.search_items(query=current_keyword, hits=30)
+            if not items:
                 continue
-                
-            # Check against Hatena recent blog post titles
-            if clean_name and clean_name in recent_titles_str:
+            random.shuffle(items)
+            for item in items:
+                item_code = item.get("itemCode", "")
+                clean_name = item.get("clean_title", "").lower()
+                if item_code and item_code in posted_cache:
+                    continue
+                if clean_name and clean_name in recent_titles_str:
+                    continue
+                target_item = item
+                break
+            if target_item:
+                break
+    else:
+        # Fallback or Rakuten turn
+        if platform == "yahoo" and not yahoo_client_id:
+            print("YAHOO_CLIENT_ID not found. Falling back to Rakuten.")
+            platform = "rakuten"
+        print("--- Fetching items from Rakuten API ---")
+        rakuten_client = RakutenAPI(
+            app_id=rakuten_app_id,
+            access_key=rakuten_access_key,
+            affiliate_id=rakuten_affiliate_id
+        )
+        for attempt in range(max_retries):
+            current_keyword = search_keywords if (search_keywords and attempt == 0) else rakuten_client.generate_random_keyword()
+            print(f"--- Attempt {attempt + 1}/{max_retries} (Rakuten Keyword: '{current_keyword}') ---")
+            items = rakuten_client.search_items(keyword=current_keyword, hits=30)
+            if not items:
                 continue
-
-            target_item = item
-            break
-            
-        if target_item:
-            print(f"Found new unique item: {target_item['title']}")
-            break
+            random.shuffle(items)
+            for item in items:
+                item_code = item.get("itemCode", "")
+                clean_name = item.get("clean_title", "").lower()
+                if item_code and item_code in posted_cache:
+                    continue
+                if clean_name and clean_name in recent_titles_str:
+                    continue
+                target_item = item
+                break
+            if target_item:
+                break
 
     if not target_item:
         print("Error: Could not find any unique unposted items after multiple attempts.")
         sys.exit(1)
         
-    print(f"Selected Item to Post: {target_item['clean_title']} ({target_item['price']}) - Code: {target_item.get('itemCode')}")
+    print(f"Selected Item to Post: [{platform.upper()}] {target_item['clean_title']} ({target_item['price']}) - Code: {target_item.get('itemCode')}")
 
     # 3. Generate Eyecatch Image
     print("Initializing Image Generator...")
@@ -150,7 +168,21 @@ def main():
 
     affiliate_link = target_item.get("url", "")
 
-    # 大迫力の高解像度商品画像（クリックで楽天市場へ直接遷移）
+    # プラットフォームごとの配色・テキストカスタマイズ
+    if platform == "yahoo":
+        platform_name = "Yahoo!ショッピング"
+        sub_badge = "Yahoo!ショッピング 公式・優良配送ストア"
+        btn_gradient = "linear-gradient(135deg, #ff0033 0%, #ff334b 100%)"
+        btn_shadow = "rgba(255,0,51,0.25)"
+        notice_text = "※PayPayポイント還元率、現在のセール・クーポン情報、配送予定日は上記Yahoo!ショッピングリンク先からご確認いただけます。"
+    else:
+        platform_name = "楽天市場"
+        sub_badge = "楽天市場 公式ショップ・優良店"
+        btn_gradient = "linear-gradient(135deg, #bf0000 0%, #e60000 100%)"
+        btn_shadow = "rgba(191,0,0,0.25)"
+        notice_text = "※現在のセール状況、お買い物マラソン等の楽天ポイント倍率や即日配送状況は上記リンク先からご確認いただけます。"
+
+    # 大迫力の高解像度商品画像（クリックで商品ページへ直接遷移）
     img_html = ""
     if uploaded_image_url:
         img_html = f'''
@@ -158,7 +190,7 @@ def main():
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
         <img src="{uploaded_image_url}" alt="{clean_title}" style="width: 100%; max-width: 680px; height: auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: block; margin: 0 auto; transition: transform 0.2s ease;">
     </a>
-    <p style="font-size: 11px; color: #999; margin-top: 8px;">（※画像クリックで楽天市場の商品ページへ移動できます）</p>
+    <p style="font-size: 11px; color: #999; margin-top: 8px;">（※画像クリックで{platform_name}の商品ページへ移動できます）</p>
 </div>
 '''
 
@@ -168,8 +200,8 @@ def main():
         early_cta_html = f'''
 <div style="margin: 20px 0 35px 0; padding: 16px 20px; background: #fff8f8; border: 1px solid #ffd8d8; border-radius: 12px; text-align: center;">
     <p style="font-size: 13px; color: #bf0000; font-weight: bold; margin: 0 0 10px 0;">＼ セール情報・リアルタイム最安値をチェック ／</p>
-    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #bf0000 0%, #e60000 100%); color: #ffffff; padding: 13px 28px; font-size: 15px; font-weight: bold; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(191,0,0,0.25);">
-        楽天市場で「{clean_title}」の価格・在庫を見る 🛒
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #ffffff; padding: 13px 28px; font-size: 15px; font-weight: bold; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px {btn_shadow};">
+        {platform_name}で「{clean_title}」の価格・在庫を見る 🛒
     </a>
 </div>
 '''
@@ -179,18 +211,17 @@ def main():
     if affiliate_link:
         closing_cta_html = f'''
 <div style="margin: 45px 0 25px 0; padding: 26px 22px; background: #fdfbfb; border: 2px solid #f0e6e6; border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.04);">
-    <span style="display: inline-block; background: #bf0000; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;">楽天市場 公式ショップ・優良店</span>
+    <span style="display: inline-block; background: #333333; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;">{sub_badge}</span>
     <div style="font-size: 18px; font-weight: bold; color: #222; margin-bottom: 8px; line-height: 1.4;">{clean_title}</div>
     <div style="font-size: 20px; font-weight: bold; color: #bf0000; margin-bottom: 18px;">{target_item.get('price', '')}</div>
-    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #bf0000 0%, #d61a1a 100%); color: #ffffff; padding: 16px 38px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px rgba(191,0,0,0.3); text-align: center;">
-        楽天市場で詳細・ユーザー口コミを見る 🛒
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #ffffff; padding: 16px 38px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px {btn_shadow}; text-align: center;">
+        {platform_name}で詳細・ユーザー口コミを見る 🛒
     </a>
-    <p style="font-size: 12px; color: #888; margin-top: 14px; margin-bottom: 0;">※現在のセール状況、お買い物マラソン等のポイント倍率や即日配送状況は上記リンク先からご確認いただけます。</p>
+    <p style="font-size: 12px; color: #888; margin-top: 14px; margin-bottom: 0;">{notice_text}</p>
 </div>
 '''
 
-    # 【最重要】記事冒頭（ディスクリプション部分）には純粋な魅力文（desc_html）のみを配置！
-    # 検索エンジン・ブログ一覧の抜粋に画像クレジットやボタンのテキストが混入するのを完全防止
+    # 【最重要】記事冒頭（ディスクリプション部分）には純粋な魅力文（desc_html）のみを配置
     article_content = f"{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{closing_cta_html}"
 
     # Post Entry
@@ -206,6 +237,10 @@ def main():
         if item_code:
             save_posted_cache(item_code)
             print(f"Saved {item_code} to {CACHE_FILE}")
+
+        # Save platform state for next rotation
+        save_current_platform(platform)
+        print(f"Rotated platform state: last was {platform}")
 
         # Post to Bluesky
         try:
