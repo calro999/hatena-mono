@@ -140,7 +140,13 @@ def main():
     article_content = article_gen.generate_review_article(target_item)
     
     clean_title = target_item.get("clean_title") or target_item["title"]
-    title = f"【本音レビュー】「{clean_title}」は本当に買い？実際に使ってわかったメリット・デメリットを徹底検証！"
+    title_hooks = [
+        f"【本音レビュー】「{clean_title}」は本当に買い？実際に使ってわかったメリット・デメリットを徹底検証！",
+        f"【正直レビュー】「{clean_title}」を買って激変した毎日！リアルな使い心地とおすすめ理由まとめ",
+        f"【買う前に必読】「{clean_title}」の使い勝手・注意点を本音で暴露！後悔しないための徹底ガイド",
+        f"【愛用者激白】「{clean_title}」が想像以上に良かった！日々のストレスが消えた理由"
+    ]
+    title = random.choice(title_hooks)
 
     # Determine image to insert
     uploaded_image_url = hatena_client.upload_image_to_fotolife(eyecatch_path)
