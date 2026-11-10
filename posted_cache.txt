@@ -528,3 +528,4 @@ zononetshop:10002471
 ugreen-gear:10001725
 motteru:10000092
 comset:10001401
+komorebishop:10295436
