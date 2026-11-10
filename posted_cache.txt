@@ -522,3 +522,4 @@ mpowjapan:10000175
 aohi:10000007
 himawaritop:10000547
 smahoservice:10003778
+ezone:10000222
