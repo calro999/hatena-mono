@@ -93,9 +93,15 @@ class ArticleGenerator:
                 gen_content = subparts[1].strip()
                 gen_content = re.sub(r'^(CONTENT:|本文[:：])\s*', '', gen_content).strip()
 
-                # タイトルのクレンジング
-                if len(gen_title) > 36:
-                    gen_title = gen_title[:35].rstrip()
+                # タイトルのクレンジング（途切れ防止: 単純スライスによる中途半端な切断を禁止）
+                if len(gen_title) > 42:
+                    # 句読点やスペースなど意味の区切りがある場合のみ適切にトリム、なければそのまま活かす
+                    for sep in ['！', '!', '？', '?', ' ', '　', '。']:
+                        if sep in gen_title[:38]:
+                            idx = gen_title[:38].rfind(sep)
+                            if idx > 15:
+                                gen_title = gen_title[:idx+1].strip()
+                                break
                 if not gen_title:
                     gen_title = f"{clean_title}の魅力とリアルな使い心地を徹底解説"
 
