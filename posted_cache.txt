@@ -530,3 +530,4 @@ motteru:10000092
 comset:10001401
 komorebishop:10295436
 hitidear:10000121
+switchbot:10000039
