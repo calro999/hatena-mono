@@ -533,3 +533,4 @@ hitidear:10000121
 switchbot:10000039
 yakia:10002198
 tact-up:10000271
+liberesta:10000108
