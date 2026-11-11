@@ -534,3 +534,4 @@ switchbot:10000039
 yakia:10002198
 tact-up:10000271
 liberesta:10000108
+dryershop:10000114
