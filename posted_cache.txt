@@ -554,3 +554,4 @@ switchbot:10000285
 wishsun:10000366
 obuone:10000041
 fordear-nizimusubi:10175752
+pcastore:10005810
