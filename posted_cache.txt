@@ -575,3 +575,5 @@ shoppuzzle:10000246
 lock110:10101948
 yamazenkaden:10002614
 zekei:10000873
+nihontuuhan:10025599
+kokubanstore:10181178
