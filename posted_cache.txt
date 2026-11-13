@@ -565,3 +565,5 @@ sunivision:10000232
 slope-up:10075746
 slife:10031711
 whitewings:10051444
+kansaisakabashop:10006040
+hiliteshop:10025544
