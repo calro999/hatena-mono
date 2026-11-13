@@ -569,3 +569,5 @@ kansaisakabashop:10006040
 hiliteshop:10025544
 marubi01:10000154
 himawaritop:10000872
+matsucame:10074501
+n-gifted:10203464
