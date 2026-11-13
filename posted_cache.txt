@@ -567,3 +567,5 @@ slife:10031711
 whitewings:10051444
 kansaisakabashop:10006040
 hiliteshop:10025544
+marubi01:10000154
+himawaritop:10000872
