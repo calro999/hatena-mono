@@ -573,3 +573,5 @@ matsucame:10074501
 n-gifted:10203464
 shoppuzzle:10000246
 lock110:10101948
+yamazenkaden:10002614
+zekei:10000873
