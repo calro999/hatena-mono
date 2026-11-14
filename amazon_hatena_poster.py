@@ -1,3 +1,4 @@
+from external_links import find_best_external_link, generate_external_link_html
 import os
 if os.path.exists(".env"):
     with open(".env", "r", encoding="utf-8") as f:
@@ -186,7 +187,11 @@ def post_single_article(
 </div>
 '''
 
-    article_content = f"{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{closing_cta_html}"
+    ext_target = find_best_external_link(target_item.get('title', ''), target_item.get('itemCaption', '') or target_item.get('caption', ''))
+    ext_link_html = generate_external_link_html(ext_target)
+    if ext_link_html:
+        print(f"[EXTERNAL-LINK] Added affinity link to {ext_target['domain']}")
+    article_content = f"{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{ext_link_html}\n{closing_cta_html}"
 
     # Post Entry
     published_entry_url = hatena_client.post_entry(
