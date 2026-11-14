@@ -579,3 +579,5 @@ nihontuuhan:10025599
 kokubanstore:10181178
 fukuroyuri:10000350
 s-marche:10004608
+digitalhonpo:10000005
+hitidear:10000172
