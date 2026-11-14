@@ -599,3 +599,5 @@ hitidear:10000171
 machinoomise:10000763
 qifeng:10000230
 stravel:10008253
+smart-life-gear:10007673
+milicute-himawari:10000061
