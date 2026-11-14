@@ -603,3 +603,5 @@ smart-life-gear:10007673
 milicute-himawari:10000061
 marubi01:10000378
 yumenomori:10000121
+mantubiz:10020318
+kamimatsuri:10000491
