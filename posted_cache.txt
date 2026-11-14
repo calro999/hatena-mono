@@ -601,3 +601,5 @@ qifeng:10000230
 stravel:10008253
 smart-life-gear:10007673
 milicute-himawari:10000061
+marubi01:10000378
+yumenomori:10000121
