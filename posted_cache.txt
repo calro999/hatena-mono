@@ -626,3 +626,5 @@ tensyodo:10019964
 matsukaze0927:12561666
 arianza:10001306
 kouseisyouten:10001912
+sanwadirect:10104485
+lumiscience:10002010
