@@ -614,3 +614,5 @@ iapos:10000005
 bloomelier:10213376
 backyard:10020361
 fastonline:10000064
+yk-0610shop:10045346
+kaimonotengoku:10000128
