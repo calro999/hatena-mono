@@ -624,3 +624,5 @@ chacha1:10000202
 bungudo:10339030
 tensyodo:10019964
 matsukaze0927:12561666
+arianza:10001306
+kouseisyouten:10001912
