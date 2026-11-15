@@ -608,3 +608,5 @@ kamimatsuri:10000491
 shiodoki:10000133
 kasukito:10010653
 mitumoto001:10000555
+zekei:10000682
+gekiyasu-ink:10032071
