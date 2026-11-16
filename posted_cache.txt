@@ -638,3 +638,5 @@ gekiyasu-ink:10034890
 terracestore:10074135
 aikabussan:10000039
 kokubanstore:10174695
+hellodear:10954486
+pl-kitchen:10002040
