@@ -630,3 +630,5 @@ sanwadirect:10104485
 lumiscience:10002010
 fj-market:10016808
 importshopaqua:10012569
+kadenrand:10146413
+kadenrand:10158975
