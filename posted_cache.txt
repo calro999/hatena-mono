@@ -636,3 +636,5 @@ lifeonproducts:10000359
 lifeideakan:10000274
 gekiyasu-ink:10034890
 terracestore:10074135
+aikabussan:10000039
+kokubanstore:10174695
