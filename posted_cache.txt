@@ -640,3 +640,5 @@ aikabussan:10000039
 kokubanstore:10174695
 hellodear:10954486
 pl-kitchen:10002040
+tansu:10043545
+yamazenkaden:10002736
