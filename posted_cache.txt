@@ -642,3 +642,5 @@ hellodear:10954486
 pl-kitchen:10002040
 tansu:10043545
 yamazenkaden:10002736
+yumori:10195147
+esupply:10100077
