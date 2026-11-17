@@ -664,3 +664,5 @@ daikokuyaume:10061543
 akindo:10197640
 mkslpulp:10136428
 scintitur:10000724
+machinoomise:10000701
+switchbot:10000010
