@@ -658,3 +658,5 @@ moroimori:10000080
 himawaritop:10000730
 sidagar:10000052
 monogallery:10004748
+stream-by-parityjapan:10001036
+yckaden:10000223
