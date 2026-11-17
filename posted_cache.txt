@@ -666,3 +666,5 @@ mkslpulp:10136428
 scintitur:10000724
 machinoomise:10000701
 switchbot:10000010
+roomy:10017002
+kaichouseikatsu:10038053
