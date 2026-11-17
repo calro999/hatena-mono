@@ -660,3 +660,5 @@ sidagar:10000052
 monogallery:10004748
 stream-by-parityjapan:10001036
 yckaden:10000223
+daikokuyaume:10061543
+akindo:10197640
