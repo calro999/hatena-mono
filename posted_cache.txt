@@ -668,3 +668,5 @@ machinoomise:10000701
 switchbot:10000010
 roomy:10017002
 kaichouseikatsu:10038053
+animestore:10000898
+mzymzy:11472110
