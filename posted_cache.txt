@@ -680,3 +680,5 @@ ezone:10001941
 putera:10624859
 starfield01:10042999
 moroimori:10000084
+pureplus:10043363
+lifestylepartner:10109082
