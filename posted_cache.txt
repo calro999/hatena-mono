@@ -682,3 +682,5 @@ starfield01:10042999
 moroimori:10000084
 pureplus:10043363
 lifestylepartner:10109082
+lifestyleshop2021:10001705
+scintitur:10023480
