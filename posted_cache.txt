@@ -688,3 +688,5 @@ zzysyouji:10020907
 moroimori:10000089
 h2brothers:10001989
 ezone:10001303
+fariershop:10000066
+askrtech:10000384
