@@ -690,3 +690,5 @@ h2brothers:10001989
 ezone:10001303
 fariershop:10000066
 askrtech:10000384
+raycop:10000506
+gekiyasukan:10003017
