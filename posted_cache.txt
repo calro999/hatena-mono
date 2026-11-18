@@ -674,3 +674,5 @@ okmono:10052564
 auc-risecreation:10004531
 ciel-sora:10191251
 rizelife-hacks:10007501
+selfshop:10003730
+alice00:10005274
