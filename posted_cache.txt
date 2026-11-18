@@ -694,3 +694,5 @@ raycop:10000506
 gekiyasukan:10003017
 misutekina:10003318
 lumi-plusalpha:10001350
+kadenrand:10072504
+buriruby:11473383
