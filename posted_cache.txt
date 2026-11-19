@@ -700,3 +700,5 @@ denkichiweb:10032031
 iwalk-japan:10000017
 r-kojima:11536538
 alamode:10027106
+juntakushop:10000003
+oyanagi:10001981
