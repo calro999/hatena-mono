@@ -702,3 +702,5 @@ r-kojima:11536538
 alamode:10027106
 juntakushop:10000003
 oyanagi:10001981
+smartsupply:10001650
+pcatec:10005121
