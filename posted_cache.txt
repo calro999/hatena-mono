@@ -712,3 +712,5 @@ esupply:10100720
 kouseisyouten:10001775
 adlibitum:10000036
 unidy:11100541
+switchbot:10000231
+machinoomise:10000705
