@@ -698,3 +698,5 @@ kadenrand:10072504
 buriruby:11473383
 denkichiweb:10032031
 iwalk-japan:10000017
+r-kojima:11536538
+alamode:10027106
