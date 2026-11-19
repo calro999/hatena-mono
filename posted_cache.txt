@@ -716,3 +716,5 @@ switchbot:10000231
 machinoomise:10000705
 hobinavi:10654521
 expsjapan:10056288
+caselandshop:10251984
+bunbun-shop:10000067
