@@ -706,3 +706,5 @@ smartsupply:10001650
 pcatec:10005121
 eclink:10002403
 vision-stores:10601357
+moroimori:10000091
+sonic-store:10000099
