@@ -714,3 +714,5 @@ adlibitum:10000036
 unidy:11100541
 switchbot:10000231
 machinoomise:10000705
+hobinavi:10654521
+expsjapan:10056288
