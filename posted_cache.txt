@@ -704,3 +704,5 @@ juntakushop:10000003
 oyanagi:10001981
 smartsupply:10001650
 pcatec:10005121
+eclink:10002403
+vision-stores:10601357
