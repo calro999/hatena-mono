@@ -718,3 +718,5 @@ hobinavi:10654521
 expsjapan:10056288
 caselandshop:10251984
 bunbun-shop:10000067
+switchbot:10000280
+roomy-garden:10022476
