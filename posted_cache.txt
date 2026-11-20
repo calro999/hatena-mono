@@ -728,3 +728,5 @@ astershop:10767093
 irisplaza-r:10156841
 shopkurano:10013542
 lworld:10000039
+tinotenda:10000067
+auc-ulmax:11938203
