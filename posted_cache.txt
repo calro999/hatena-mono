@@ -726,3 +726,5 @@ ilmondomall:10102397
 aidort:10001370
 astershop:10767093
 irisplaza-r:10156841
+shopkurano:10013542
+lworld:10000039
