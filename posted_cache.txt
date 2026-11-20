@@ -734,3 +734,5 @@ elecom:10042426
 chunyiyang:10000393
 moroimori:10000096
 larue:10002812
+fujiwara-corp:10000363
+genshop:10000605
