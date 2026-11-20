@@ -736,3 +736,5 @@ moroimori:10000096
 larue:10002812
 fujiwara-corp:10000363
 genshop:10000605
+comwap:10004647
+sidagar:10000035
