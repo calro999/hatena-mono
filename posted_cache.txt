@@ -720,3 +720,5 @@ caselandshop:10251984
 bunbun-shop:10000067
 switchbot:10000280
 roomy-garden:10022476
+hibikurashi:10000189
+la-ma:10000978
