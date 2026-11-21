@@ -744,3 +744,5 @@ lino-select:10032373
 funroad:10000117
 pasodentsushin:10774357
 officemtsd-2:10066694
+as-departstore:10000031
+tomstore:10949583
