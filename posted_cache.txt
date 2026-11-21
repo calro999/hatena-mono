@@ -750,3 +750,5 @@ dtc:13138695
 ll-store:10000125
 lotsofproduct:10025717
 cwstore:10036153
+roiciel:10000215
+theadore:10004140
