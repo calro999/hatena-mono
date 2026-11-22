@@ -766,3 +766,5 @@ niconico0713:10000094
 bg-shop:10002842
 ugreen-gear:10000288
 rinwa:10009505
+theshop960:10001072
+tsurunooshiro:10000204
