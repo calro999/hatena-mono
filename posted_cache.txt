@@ -762,3 +762,5 @@ mottole-shop:10000180
 shop-higaki:10000215
 lukurasu:10003485
 mcreatejet:10029815
+niconico0713:10000094
+bg-shop:10002842
