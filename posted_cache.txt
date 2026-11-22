@@ -768,3 +768,5 @@ ugreen-gear:10000288
 rinwa:10009505
 theshop960:10001072
 tsurunooshiro:10000204
+roiciel:10000339
+suparee:10000555
