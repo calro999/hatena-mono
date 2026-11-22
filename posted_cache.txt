@@ -784,3 +784,5 @@ bunbun-shop:10000076
 keipuraimu:10003094
 enetroom:10195937
 nuoshilan:10000069
+xinye-osaka:10003716
+gmy-japan:10000060
