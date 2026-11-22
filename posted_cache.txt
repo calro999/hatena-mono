@@ -770,3 +770,5 @@ theshop960:10001072
 tsurunooshiro:10000204
 roiciel:10000339
 suparee:10000555
+ezone:10001107
+newyoku:10023958
