@@ -780,3 +780,5 @@ kuramochishop:10001312
 ajyuri:11088801
 takahashinamuya:10007554
 onlyons:10107315
+bunbun-shop:10000076
+keipuraimu:10003094
