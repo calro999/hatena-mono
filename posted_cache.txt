@@ -764,3 +764,5 @@ lukurasu:10003485
 mcreatejet:10029815
 niconico0713:10000094
 bg-shop:10002842
+ugreen-gear:10000288
+rinwa:10009505
