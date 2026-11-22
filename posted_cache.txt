@@ -778,3 +778,5 @@ eclink:10000265
 re-pro:10000520
 kuramochishop:10001312
 ajyuri:11088801
+takahashinamuya:10007554
+onlyons:10107315
