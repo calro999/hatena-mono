@@ -776,3 +776,5 @@ bestday:10000960
 firstlove:10157868
 eclink:10000265
 re-pro:10000520
+kuramochishop:10001312
+ajyuri:11088801
