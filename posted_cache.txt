@@ -790,3 +790,5 @@ saisonlife:10011987
 ysmya:10012255
 stream-by-parityjapan:10000998
 iremono:10004678
+colorful999:10000960
+cloudstore:10001321
