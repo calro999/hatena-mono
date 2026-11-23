@@ -800,3 +800,5 @@ smahoservice:10003735
 meiyiduoshop:10006043
 tokka-com:10950261
 enzou:10000023
+duyoroimou:10000005
+fukuroyuri:10000397
