@@ -792,3 +792,5 @@ stream-by-parityjapan:10000998
 iremono:10004678
 colorful999:10000960
 cloudstore:10001321
+souplesse:10000102
+abczshopp:10015954
