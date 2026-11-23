@@ -802,3 +802,5 @@ tokka-com:10950261
 enzou:10000023
 duyoroimou:10000005
 fukuroyuri:10000397
+snailax-shop:10000183
+wmarket:10821822
