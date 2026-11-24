@@ -811,3 +811,5 @@ ezone:10002712
 kaguzaku:10010298
 happyandhappy:10003517
 sidagar:10000021
+asamu:10000469
+asus-store:10000716
