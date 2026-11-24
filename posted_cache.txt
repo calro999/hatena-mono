@@ -815,3 +815,5 @@ asamu:10000469
 asus-store:10000716
 kojimachigolf:10009727
 watch-lab:10103069
+as-departstore:10000029
+ouchi-labo:10020539
