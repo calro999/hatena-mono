@@ -806,3 +806,5 @@ snailax-shop:10000183
 wmarket:10821822
 nissoplus:10000264
 izumishouten511:10016281
+nishikiyaweb:10029438
+ezone:10002712
