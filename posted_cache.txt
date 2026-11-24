@@ -819,3 +819,5 @@ as-departstore:10000029
 ouchi-labo:10020539
 souplesse:10000435
 jstudio:10000299
+habit-balance:10000052
+maisonclover:10396325
