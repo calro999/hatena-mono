@@ -825,3 +825,5 @@ rack-kan:10104708
 case-by-case:10002038
 aeru2020:10001024
 fresasol:10002427
+karinkaku:10006030
+switchbot:10000222
