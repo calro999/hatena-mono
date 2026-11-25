@@ -831,3 +831,5 @@ mpowjapan:10000719
 vicsystore:10217718
 tabtab:10003266
 gerbera-global:10000318
+threeup:10000216
+shoppuzzle:10000264
