@@ -845,3 +845,5 @@ nekosansyouten:10019407
 asamu:10000500
 jolife-t:10011305
 richgo-shop:10000119
+fordear-nizimusubi:10165494
+sanwadirect:10107492
