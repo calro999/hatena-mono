@@ -835,3 +835,5 @@ threeup:10000216
 shoppuzzle:10000264
 dragondash:10032889
 716store:10027598
+otskr:10000212
+creaswing:10000127
