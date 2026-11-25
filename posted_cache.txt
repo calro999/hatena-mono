@@ -837,3 +837,5 @@ dragondash:10032889
 716store:10027598
 otskr:10000212
 creaswing:10000127
+fk-store:10000290
+omichi-store:10150354
