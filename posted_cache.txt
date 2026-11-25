@@ -841,3 +841,5 @@ fk-store:10000290
 omichi-store:10150354
 plays23:11301010
 hokkaido-kaori:10016613
+nekosansyouten:10019407
+asamu:10000500
