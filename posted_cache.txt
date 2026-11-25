@@ -843,3 +843,5 @@ plays23:11301010
 hokkaido-kaori:10016613
 nekosansyouten:10019407
 asamu:10000500
+jolife-t:10011305
+richgo-shop:10000119
