@@ -839,3 +839,5 @@ otskr:10000212
 creaswing:10000127
 fk-store:10000290
 omichi-store:10150354
+plays23:11301010
+hokkaido-kaori:10016613
