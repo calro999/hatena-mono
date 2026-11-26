@@ -865,3 +865,5 @@ tripleshop:10000133
 deco-maison:12010271
 7dials:10008581
 nashop23:10000340
+minato-future-store:10000116
+enterb:10000035
