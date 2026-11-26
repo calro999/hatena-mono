@@ -867,3 +867,5 @@ deco-maison:12010271
 nashop23:10000340
 minato-future-store:10000116
 enterb:10000035
+kobe-s:10116590
+88so-kai:10001386
