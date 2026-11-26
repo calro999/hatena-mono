@@ -857,3 +857,5 @@ lifeselect:10002556
 seinan2:10000033
 amosroom:10007517
 livelylife:10001290
+jcom316-cute:10011592
+daily-store:10233753
