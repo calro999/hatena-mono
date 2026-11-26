@@ -853,3 +853,5 @@ bluxe-store:10000004
 3sense:10000101
 goodtimestore:10065918
 sinessy:10000020
+lifeselect:10002556
+seinan2:10000033
