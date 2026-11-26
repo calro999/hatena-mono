@@ -851,3 +851,5 @@ mscien:10000204
 cwstore:10024273
 bluxe-store:10000004
 3sense:10000101
+goodtimestore:10065918
+sinessy:10000020
