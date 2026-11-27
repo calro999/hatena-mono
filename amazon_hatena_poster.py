@@ -18,6 +18,8 @@ from image_generator import ImageGenerator
 from hatena_api import HatenaAPI
 from bluesky_api import BlueskyAPI
 
+CACHE_FILE = "posted_cache.txt"
+
 from affiliate_browser import AffiliateBrowserExtractor
 browser_extractor = AffiliateBrowserExtractor()
 
