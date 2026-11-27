@@ -893,3 +893,5 @@ stream-by-parityjapan:10001133
 yahoo_sum41_2105202102000002
 livelylife:10003553
 yahoo_tradevoxj_ss039
+motteru:10000059
+yahoo_elecom_4549550456128
