@@ -873,3 +873,5 @@ primeplus:10095087
 galleria-annex:10039033
 hosky:10000335
 zozohonpo:10000841
+artpiecenadas:10000393
+tripleshop:10000173
