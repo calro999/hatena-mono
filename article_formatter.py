@@ -98,7 +98,24 @@ class DraftArticleFormatter:
         desc = item.get("description", "")
         seller = item.get("seller", "")
         
-        url = placeholder_affiliate_url or item.get("url", "")
+        yahoo_url = placeholder_affiliate_url or item.get("url", "")
+        clean_name = item.get("clean_name") or item.get("clean_title") or "注目アイテム"
+        
+        # Amazon検索アフィリエイトURLの生成
+        from urllib.parse import quote
+        amazon_tag = os.environ.get("AMAZON_ASSOCIATE_TAG", "mattan0290c-22")
+        amazon_url = f"https://www.amazon.co.jp/s?k={quote(clean_name)}&tag={amazon_tag}"
+
+        def build_cta_buttons(main_text: str = "詳細・在庫をチェック") -> str:
+            """Yahoo!とAmazonの2連ボタンスタイル（価格非表示・レスポンシブ）"""
+            return f"""<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 30px auto; max-width: 600px;">
+        <a href="{yahoo_url}" target="_blank" rel="noopener noreferrer" style="flex: 1 1 240px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ff0033 0%, #cc0000 100%); color: #ffffff; font-size: 1.1em; font-weight: bold; text-decoration: none; padding: 14px 24px; border-radius: 50px; box-shadow: 0 4px 12px rgba(255, 0, 51, 0.3); transition: transform 0.2s ease;">
+            <span style="font-size: 0.9em; margin-right: 6px;">🛒</span> Yahoo!で見る
+        </a>
+        <a href="{amazon_url}" target="_blank" rel="noopener noreferrer" style="flex: 1 1 240px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ff9900 0%, #e68a00 100%); color: #ffffff; font-size: 1.1em; font-weight: bold; text-decoration: none; padding: 14px 24px; border-radius: 50px; box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3); transition: transform 0.2s ease;">
+            <span style="font-size: 0.9em; margin-right: 6px;">📦</span> Amazonで見る
+        </a>
+    </div>"""
         
         images = item.get("images", [])
         img1 = images[0] if len(images) > 0 else f"https://item-shopping.c.yimg.jp/i/l/{item.get('image_id')}"
@@ -187,41 +204,33 @@ class DraftArticleFormatter:
         <p style="font-size: 1.05em; margin-bottom: 0;">{hook_p3}</p>
     </div>
 
-    <div style="text-align: center; margin-bottom: 35px;">
-        <a href="{url}" target="_blank" rel="noopener noreferrer">
+    <div style="text-align: center; margin-bottom: 25px;">
+        <a href="{yahoo_url}" target="_blank" rel="noopener noreferrer">
             <img src="{img1}" alt="{clean_name}" style="max-width: 90%; height: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.06);">
         </a>
     </div>
 
-    <div style="text-align: center; margin: 30px 0 50px 0;">
-        <a href="{url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #f6b93b 0%, #e58e26 100%); color: #ffffff; font-size: 1.25em; font-weight: bold; text-decoration: none; padding: 18px 50px; border-radius: 50px; box-shadow: 0 6px 15px rgba(229, 142, 38, 0.3); transition: all 0.3s ease;">
-            {cta_text_1}
-        </a>
-    </div>
+    {build_cta_buttons(cta_text_1)}
 
     <h2 style="font-size: 1.5em; color: #2d3436; border-bottom: 2px solid #6c5ce7; padding-bottom: 10px; margin-bottom: 25px;">{sec1_h2}</h2>
     <p>{sec1_p1}</p>
     <p>{sec1_p2}</p>
 
     <div style="text-align: center; margin: 35px 0;">
-        <a href="{url}" target="_blank" rel="noopener noreferrer">
+        <a href="{yahoo_url}" target="_blank" rel="noopener noreferrer">
             <img src="{img2}" alt="{clean_name} 特徴" style="max-width: 90%; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
         </a>
     </div>
 
     <p>{sec1_p3}</p>
 
-    <div style="text-align: center; margin: 45px 0;">
-        <a href="{url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #f6b93b 0%, #e58e26 100%); color: #ffffff; font-size: 1.25em; font-weight: bold; text-decoration: none; padding: 16px 45px; border-radius: 50px; box-shadow: 0 6px 15px rgba(229, 142, 38, 0.3);">
-            {cta_text_2}
-        </a>
-    </div>
+    {build_cta_buttons(cta_text_2)}
 
     <h3 style="font-size: 1.3em; color: #4834d4; margin-top: 45px; margin-bottom: 20px;">{sec2_h3}</h3>
     <p>{sec2_p1}</p>
 
     <div style="text-align: center; margin: 35px 0;">
-        <a href="{url}" target="_blank" rel="noopener noreferrer">
+        <a href="{yahoo_url}" target="_blank" rel="noopener noreferrer">
             <img src="{img3}" alt="{clean_name} ディテール" style="max-width: 90%; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
         </a>
     </div>
@@ -235,11 +244,7 @@ class DraftArticleFormatter:
         <p style="margin-bottom: 0; font-size: 0.95em; color: #747d8c;">{summary_body}</p>
     </div>
 
-    <div style="text-align: center; margin: 40px 0;">
-        <a href="{url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #e58e26 0%, #d35400 100%); color: #ffffff; font-size: 1.4em; font-weight: bold; text-decoration: none; padding: 18px 60px; border-radius: 50px; box-shadow: 0 8px 20px rgba(211, 84, 0, 0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: transform 0.2s ease;">
-            {cta_text_3}
-        </a>
-    </div>
+    {build_cta_buttons(cta_text_3)}
 
     {ext_link_html}
 

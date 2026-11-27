@@ -38,6 +38,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        playwright install chromium --with-deps
 
     - name: Install Japanese fonts
       run: |
@@ -51,10 +52,11 @@ jobs:
         RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
         RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
 
-        # Yahoo API Credentials
+        # Yahoo API Credentials & Session Cookies
         YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
         YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
         YAHOO_AFFILIATE_ID: ${{ secrets.YAHOO_AFFILIATE_ID }}
+        YAHOO_COOKIES_JSON: ${{ secrets.YAHOO_COOKIES_JSON }}
 
         # Hatena API Settings
         HATENA_ID: ${{ secrets.HATENA_ID }}
