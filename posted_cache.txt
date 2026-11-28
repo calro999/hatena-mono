@@ -907,3 +907,5 @@ roiciel:10000245
 yahoo_taroshop_anker-soundcore3
 kyoku1:10000156
 yahoo_tjstore18_bjb06
+soppy:10000423
+yahoo_switchbot_w2612250
