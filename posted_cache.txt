@@ -909,3 +909,5 @@ kyoku1:10000156
 yahoo_tjstore18_bjb06
 soppy:10000423
 yahoo_switchbot_w2612250
+kyoku1:10000305
+yahoo_wayoushoji999_g34
